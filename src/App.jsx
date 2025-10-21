@@ -271,7 +271,7 @@ function App() {
                 onClick={() => setShowDeck(!showDeck)}
                 className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
               >
-                {showDeck ? "Hide Deck" : "Show Deck"} ({deckStats.total} cards)
+                {showDeck ? "Card search" : "Deck view"} ({deckStats.total} cards)
               </button>
             </div>
           </div>
