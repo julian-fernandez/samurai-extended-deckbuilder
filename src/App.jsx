@@ -11,6 +11,7 @@ import DeckSection from "./components/DeckSection";
 import DeckTypeSection from "./components/DeckTypeSection";
 import PWAInstallButton from "./components/PWAInstallButton";
 import OfflineIndicator from "./components/OfflineIndicator";
+import Sidebar from "./components/Sidebar";
 import {
   loadCards,
   filterCards,
@@ -69,6 +70,7 @@ function App() {
     keywords: [],
   });
   const [reloadTick, setReloadTick] = useState(0);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Load cards on mount
   useEffect(() => {
@@ -253,158 +255,134 @@ function App() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       <OfflineIndicator />
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-2">
-              Legend of the Five Rings
-            </h1>
-            <p className="text-xl text-gray-600 font-medium">
-              Samurai Extended Format
-            </p>
-          </div>
-          <div className="flex items-center gap-4">
-            <PWAInstallButton />
-            <div className="flex gap-4">
-              <button
-                onClick={() => setShowDeck(!showDeck)}
-                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-              >
-                {showDeck ? "Card search" : "Deck view"} ({deckStats.total} cards)
-              </button>
-            </div>
-          </div>
-        </div>
+      <div className="flex min-h-screen">
+        {/* Sidebar */}
+        {!showDeck && (
+          <Sidebar
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            filters={filters}
+            setFilters={setFilters}
+            addKeyword={addKeyword}
+            removeKeyword={removeKeyword}
+            uniqueValues={uniqueValues}
+            isOpen={sidebarOpen}
+            onToggle={() => setSidebarOpen(!sidebarOpen)}
+          />
+        )}
 
         {/* Main Content */}
-        {!showDeck ? (
-          <>
-            {/* Search and Filters */}
-            <SearchFilters
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              filters={filters}
-              setFilters={setFilters}
-              addKeyword={addKeyword}
-              removeKeyword={removeKeyword}
-              uniqueValues={uniqueValues}
-            />
+        <div className="flex-1 min-w-0">
+          <div className="container mx-auto px-4 py-8">
+            {/* Header */}
+            <div className="flex justify-between items-center mb-8">
+              <div>
+                <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+                  Legend of the Five Rings
+                </h1>
+                <p className="text-xl text-gray-600 font-medium">
+                  Samurai Extended Format
+                </p>
+              </div>
+              <div className="flex items-center gap-4">
+                <PWAInstallButton />
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => setShowDeck(!showDeck)}
+                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                  >
+                    {showDeck ? "Card search" : "Deck view"} ({deckStats.total}{" "}
+                    cards)
+                  </button>
+                </div>
+              </div>
+            </div>
 
-            {/* View Toggle and Results Count */}
-            <SearchViewToggle
-              currentCards={currentCards}
-              filteredCards={filteredCards}
-              currentPage={currentPage}
-              totalPages={totalPages}
-              viewMode={viewMode}
-              setViewMode={setViewMode}
-              reloadTick={reloadTick}
-              setReloadTick={setReloadTick}
-              clearImageCache={clearImageCache}
-            />
-
-            {/* Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {currentCards.map((card) => (
-                <Card
-                  key={card.id}
-                  card={card}
-                  deckCount={getDeckCount(deck, card.id)}
-                  onAddToDeck={() => handleAddToDeck(card)}
-                  onRemoveFromDeck={() => handleRemoveFromDeck(card.id)}
+            {/* Main Content */}
+            {!showDeck ? (
+              <>
+                {/* View Toggle and Results Count */}
+                <SearchViewToggle
+                  currentCards={currentCards}
+                  filteredCards={filteredCards}
+                  currentPage={currentPage}
+                  totalPages={totalPages}
                   viewMode={viewMode}
+                  setViewMode={setViewMode}
                   reloadTick={reloadTick}
+                  setReloadTick={setReloadTick}
+                  clearImageCache={clearImageCache}
                 />
-              ))}
-            </div>
 
-            {/* Pagination Controls */}
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              handlePageChange={handlePageChange}
-            />
-          </>
-        ) : (
-          /* Deck View */
-          <div className="space-y-6">
-            {/* Deck Controls */}
-            <DeckControls
-              deckViewMode={deckViewMode}
-              setDeckViewMode={setDeckViewMode}
-              deckImageViewMode={deckImageViewMode}
-              setDeckImageViewMode={setDeckImageViewMode}
-              reloadTick={reloadTick}
-              setReloadTick={setReloadTick}
-              clearImageCache={clearImageCache}
-              handleExportDeck={handleExportDeck}
-              showImport={showImport}
-              setShowImport={setShowImport}
-              handleClearDeck={handleClearDeck}
-              deckStats={deckStats}
-              deck={deck}
-            />
+                {/* Cards Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {currentCards.map((card) => (
+                    <Card
+                      key={card.id}
+                      card={card}
+                      deckCount={getDeckCount(deck, card.id)}
+                      onAddToDeck={() => handleAddToDeck(card)}
+                      onRemoveFromDeck={() => handleRemoveFromDeck(card.id)}
+                      viewMode={viewMode}
+                      reloadTick={reloadTick}
+                    />
+                  ))}
+                </div>
 
-            <DeckImport
-              showImport={showImport}
-              setShowImport={setShowImport}
-              importText={importText}
-              setImportText={setImportText}
-              handleImportDeck={handleImportDeck}
-              missingCards={missingCards}
-              setMissingCards={setMissingCards}
-            />
+                {/* Pagination Controls */}
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  handlePageChange={handlePageChange}
+                />
+              </>
+            ) : (
+              /* Deck View */
+              <div className="space-y-6">
+                {/* Deck Controls */}
+                <DeckControls
+                  deckViewMode={deckViewMode}
+                  setDeckViewMode={setDeckViewMode}
+                  deckImageViewMode={deckImageViewMode}
+                  setDeckImageViewMode={setDeckImageViewMode}
+                  reloadTick={reloadTick}
+                  setReloadTick={setReloadTick}
+                  clearImageCache={clearImageCache}
+                  handleExportDeck={handleExportDeck}
+                  showImport={showImport}
+                  setShowImport={setShowImport}
+                  handleClearDeck={handleClearDeck}
+                  deckStats={deckStats}
+                  deck={deck}
+                />
 
-            <DeckValidation deckValidation={deckValidation} />
+                <DeckImport
+                  showImport={showImport}
+                  setShowImport={setShowImport}
+                  importText={importText}
+                  setImportText={setImportText}
+                  handleImportDeck={handleImportDeck}
+                  missingCards={missingCards}
+                  setMissingCards={setMissingCards}
+                />
 
-            <DeckViewToggle
-              deckStats={deckStats}
-              deckImageViewMode={deckImageViewMode}
-              setDeckImageViewMode={setDeckImageViewMode}
-              reloadTick={reloadTick}
-              setReloadTick={setReloadTick}
-              clearImageCache={clearImageCache}
-            />
+                <DeckValidation deckValidation={deckValidation} />
 
-            {/* Deck Content */}
-            <div className="space-y-6">
-              {/* Stronghold */}
-              <DeckSection
-                title="Stronghold"
-                cards={deckByType.Stronghold}
-                deck={deck}
-                getDeckCount={getDeckCount}
-                handleAddToDeck={handleAddToDeck}
-                handleRemoveFromDeck={handleRemoveFromDeck}
-                deckImageViewMode={deckImageViewMode}
-                reloadTick={reloadTick}
-                deckViewMode={deckViewMode}
-              />
+                <DeckViewToggle
+                  deckStats={deckStats}
+                  deckImageViewMode={deckImageViewMode}
+                  setDeckImageViewMode={setDeckImageViewMode}
+                  reloadTick={reloadTick}
+                  setReloadTick={setReloadTick}
+                  clearImageCache={clearImageCache}
+                />
 
-              {/* Sensei */}
-              <DeckSection
-                title="Sensei"
-                cards={deckByType.Sensei}
-                deck={deck}
-                getDeckCount={getDeckCount}
-                handleAddToDeck={handleAddToDeck}
-                handleRemoveFromDeck={handleRemoveFromDeck}
-                deckImageViewMode={deckImageViewMode}
-                reloadTick={reloadTick}
-                deckViewMode={deckViewMode}
-              />
-
-              {/* Dynasty Deck */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h2 className="text-2xl font-bold mb-4">
-                  Dynasty Deck ({deckStats.dynasty} cards)
-                </h2>
-                {Object.entries(deckByType.Dynasty).map(([type, cards]) => (
-                  <DeckTypeSection
-                    key={type}
-                    type={type}
-                    cards={cards}
+                {/* Deck Content */}
+                <div className="space-y-6">
+                  {/* Stronghold */}
+                  <DeckSection
+                    title="Stronghold"
+                    cards={deckByType.Stronghold}
                     deck={deck}
                     getDeckCount={getDeckCount}
                     handleAddToDeck={handleAddToDeck}
@@ -413,19 +391,11 @@ function App() {
                     reloadTick={reloadTick}
                     deckViewMode={deckViewMode}
                   />
-                ))}
-              </div>
 
-              {/* Fate Deck */}
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h2 className="text-2xl font-bold mb-4">
-                  Fate Deck ({deckStats.fate} cards)
-                </h2>
-                {Object.entries(deckByType.Fate).map(([type, cards]) => (
-                  <DeckTypeSection
-                    key={type}
-                    type={type}
-                    cards={cards}
+                  {/* Sensei */}
+                  <DeckSection
+                    title="Sensei"
+                    cards={deckByType.Sensei}
                     deck={deck}
                     getDeckCount={getDeckCount}
                     handleAddToDeck={handleAddToDeck}
@@ -434,33 +404,75 @@ function App() {
                     reloadTick={reloadTick}
                     deckViewMode={deckViewMode}
                   />
-                ))}
+
+                  {/* Dynasty Deck */}
+                  <div className="bg-white rounded-xl shadow-lg p-6">
+                    <h2 className="text-2xl font-bold mb-4">
+                      Dynasty Deck ({deckStats.dynasty} cards)
+                    </h2>
+                    {Object.entries(deckByType.Dynasty).map(([type, cards]) => (
+                      <DeckTypeSection
+                        key={type}
+                        type={type}
+                        cards={cards}
+                        deck={deck}
+                        getDeckCount={getDeckCount}
+                        handleAddToDeck={handleAddToDeck}
+                        handleRemoveFromDeck={handleRemoveFromDeck}
+                        deckImageViewMode={deckImageViewMode}
+                        reloadTick={reloadTick}
+                        deckViewMode={deckViewMode}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Fate Deck */}
+                  <div className="bg-white rounded-xl shadow-lg p-6">
+                    <h2 className="text-2xl font-bold mb-4">
+                      Fate Deck ({deckStats.fate} cards)
+                    </h2>
+                    {Object.entries(deckByType.Fate).map(([type, cards]) => (
+                      <DeckTypeSection
+                        key={type}
+                        type={type}
+                        cards={cards}
+                        deck={deck}
+                        getDeckCount={getDeckCount}
+                        handleAddToDeck={handleAddToDeck}
+                        handleRemoveFromDeck={handleRemoveFromDeck}
+                        deckImageViewMode={deckImageViewMode}
+                        reloadTick={reloadTick}
+                        deckViewMode={deckViewMode}
+                      />
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Scroll to Top Button */}
+            {showScrollToTop && (
+              <button
+                onClick={scrollToTop}
+                className="fixed bottom-8 right-8 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition-colors z-50"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 10l7-7m0 0l7 7m-7-7v18"
+                  />
+                </svg>
+              </button>
+            )}
           </div>
-        )}
-
-        {/* Scroll to Top Button */}
-        {showScrollToTop && (
-          <button
-            onClick={scrollToTop}
-            className="fixed bottom-8 right-8 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition-colors z-50"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 10l7-7m0 0l7 7m-7-7v18"
-              />
-            </svg>
-          </button>
-        )}
+        </div>
       </div>
     </div>
   );

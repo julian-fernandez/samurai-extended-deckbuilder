@@ -68,13 +68,11 @@ const SearchFilters = ({
   );
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 mb-8">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">
-        Search & Filters
-      </h2>
+    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-4 mb-4">
+      <h2 className="text-xl font-bold mb-4 text-gray-800">Search & Filters</h2>
 
       {/* Search Bar */}
-      <div className="mb-6">
+      <div className="mb-4">
         <label
           htmlFor="search"
           className="block text-sm font-medium text-gray-700 mb-2"
@@ -87,12 +85,12 @@ const SearchFilters = ({
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Search by name, text, or keywords..."
-          className="w-full px-6 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all duration-200 hover:shadow-md"
+          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all duration-200 hover:shadow-md"
         />
       </div>
 
       {/* Filters */}
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Basic Filters */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Clan Filter */}
@@ -107,7 +105,7 @@ const SearchFilters = ({
               id="clan"
               value={filters.clan}
               onChange={(e) => handleFilterChange("clan", e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all duration-200 hover:shadow-md"
+              className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all duration-200 hover:shadow-md"
             >
               <option value="">All Clans</option>
               {uniqueValues.clans.map((clan) => (
@@ -130,7 +128,7 @@ const SearchFilters = ({
               id="type"
               value={filters.type}
               onChange={(e) => handleFilterChange("type", e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all duration-200 hover:shadow-md"
+              className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all duration-200 hover:shadow-md"
             >
               <option value="">All Types</option>
               {uniqueValues.types.map((type) => (
@@ -143,7 +141,7 @@ const SearchFilters = ({
         </div>
 
         {/* Numerical Range Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Cost Range */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -155,14 +153,14 @@ const SearchFilters = ({
                 placeholder="Min"
                 value={filters.costMin}
                 onChange={(e) => handleFilterChange("costMin", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full px-2 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
               <input
                 type="number"
                 placeholder="Max"
                 value={filters.costMax}
                 onChange={(e) => handleFilterChange("costMax", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full px-2 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
             </div>
           </div>
@@ -178,14 +176,14 @@ const SearchFilters = ({
                 placeholder="Min"
                 value={filters.forceMin}
                 onChange={(e) => handleFilterChange("forceMin", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full px-2 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
               <input
                 type="number"
                 placeholder="Max"
                 value={filters.forceMax}
                 onChange={(e) => handleFilterChange("forceMax", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full px-2 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
             </div>
           </div>
@@ -201,14 +199,14 @@ const SearchFilters = ({
                 placeholder="Min"
                 value={filters.chiMin}
                 onChange={(e) => handleFilterChange("chiMin", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full px-2 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
               <input
                 type="number"
                 placeholder="Max"
                 value={filters.chiMax}
                 onChange={(e) => handleFilterChange("chiMax", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full px-2 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
             </div>
           </div>
@@ -224,21 +222,21 @@ const SearchFilters = ({
                 placeholder="Min"
                 value={filters.focusMin}
                 onChange={(e) => handleFilterChange("focusMin", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full px-2 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
               <input
                 type="number"
                 placeholder="Max"
                 value={filters.focusMax}
                 onChange={(e) => handleFilterChange("focusMax", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full px-2 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
             </div>
           </div>
         </div>
 
         {/* Keyword Filter */}
-        <div className="lg:w-1/2">
+        <div className="w-full">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Keywords
           </label>
@@ -271,7 +269,7 @@ const SearchFilters = ({
               onChange={handleKeywordInputChange}
               onFocus={() => setShowKeywordSuggestions(true)}
               placeholder="Type to search keywords..."
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all duration-200 hover:shadow-md"
+              className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all duration-200 hover:shadow-md"
             />
 
             {/* Keyword Suggestions Dropdown */}
@@ -295,10 +293,10 @@ const SearchFilters = ({
       </div>
 
       {/* Clear Filters Button */}
-      <div className="flex justify-end mt-8">
+      <div className="flex justify-end mt-4">
         <button
           onClick={clearFilters}
-          className="px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-xl hover:from-gray-600 hover:to-gray-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+          className="px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-xl hover:from-gray-600 hover:to-gray-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
         >
           Clear All Filters
         </button>
