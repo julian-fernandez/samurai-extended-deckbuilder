@@ -28,7 +28,7 @@ export const loadCards = async () => {
     //   return cachedCards;
     // }
 
-    const response = await fetch(`/cards_v2.json?t=${Date.now()}`);
+    const response = await fetch(`/cards_v3.json?t=${Date.now()}`);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }

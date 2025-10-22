@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Input, Select } from "./ui";
+import KeywordSearch from "./KeywordSearch";
 
 const Sidebar = ({
   searchTerm,
@@ -232,29 +233,12 @@ const Sidebar = ({
               </div>
 
               {/* Keywords */}
-              {filters.keywords.length > 0 && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Selected Keywords
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {filters.keywords.map((keyword) => (
-                      <span
-                        key={keyword}
-                        className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                      >
-                        {keyword}
-                        <button
-                          onClick={() => removeKeyword(keyword)}
-                          className="ml-1 text-blue-600 hover:text-blue-800"
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <KeywordSearch
+                availableKeywords={uniqueValues.keywords || []}
+                selectedKeywords={filters.keywords}
+                onAddKeyword={addKeyword}
+                onRemoveKeyword={removeKeyword}
+              />
             </div>
           </div>
         )}
