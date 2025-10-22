@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Card from "./components/Card";
 import SearchFilters from "./components/SearchFilters";
 import SearchViewToggle from "./components/SearchViewToggle";
@@ -12,6 +12,8 @@ import DeckTypeSection from "./components/DeckTypeSection";
 import PWAInstallButton from "./components/PWAInstallButton";
 import OfflineIndicator from "./components/OfflineIndicator";
 import Sidebar from "./components/Sidebar";
+import ModernDeckView from "./components/ModernDeckView";
+import CardPreviewPanel from "./components/CardPreviewPanel";
 import {
   loadCards,
   filterCards,
@@ -61,9 +63,9 @@ function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const [cardsPerPage] = useState(24); // 4 columns × 6 rows
   const [deckViewMode, setDeckViewMode] = useState("compact"); // "compact" or "full"
-  const [deckImageViewMode, setDeckImageViewMode] = useState("text"); // "text" or "image"
+  const [deckImageViewMode, setDeckImageViewMode] = useState("image"); // "text" or "image"
   const [showScrollToTop, setShowScrollToTop] = useState(false);
-  const [viewMode, setViewMode] = useState("text"); // "text" or "image"
+  const [viewMode, setViewMode] = useState("image"); // "text" or "image"
   const [uniqueValues, setUniqueValues] = useState({
     clans: [],
     types: [],
@@ -71,6 +73,11 @@ function App() {
   });
   const [reloadTick, setReloadTick] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [hoveredCard, setHoveredCard] = useState(null);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const prevFiltersRef = useRef({ searchTerm: "", filters: {} });
+  const userSwitchedToDeckRef = useRef(false);
 
   // Load cards on mount
   useEffect(() => {
@@ -82,12 +89,43 @@ function App() {
     filterCardsData();
   }, [cards, searchTerm, filters]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Switch to search view when filters change in deck view (but not when user manually switches to deck)
+  useEffect(() => {
+    if (showDeck && !userSwitchedToDeckRef.current) {
+      // Check if filters actually changed (not just on initial load)
+      const filtersChanged =
+        searchTerm !== prevFiltersRef.current.searchTerm ||
+        JSON.stringify(filters) !==
+          JSON.stringify(prevFiltersRef.current.filters);
+
+      if (
+        filtersChanged &&
+        (searchTerm ||
+          Object.values(filters).some((value) =>
+            Array.isArray(value) ? value.length > 0 : value !== ""
+          ))
+      ) {
+        setShowDeck(false);
+      }
+    }
+
+    // Update previous filters
+    prevFiltersRef.current = { searchTerm, filters };
+  }, [searchTerm, filters, showDeck]);
+
   // Update unique values when cards change
   useEffect(() => {
     if (cards.length > 0) {
       setUniqueValues(getUniqueValues(cards));
     }
   }, [cards]);
+
+  // Reset the user switch flag when filters actually change
+  useEffect(() => {
+    if (userSwitchedToDeckRef.current) {
+      userSwitchedToDeckRef.current = false;
+    }
+  }, [searchTerm, filters]);
 
   // Reset to first page when filtered cards change
   useEffect(() => {
@@ -113,6 +151,18 @@ function App() {
     window.addEventListener("scroll", handleGlobalScroll);
     return () => {
       window.removeEventListener("scroll", handleGlobalScroll);
+    };
+  }, []);
+
+  // Mouse tracking for card preview
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
     };
   }, []);
 
@@ -159,6 +209,10 @@ function App() {
 
   const handleRemoveFromDeck = (cardId) => {
     setDeck(removeFromDeck(deck, cardId));
+  };
+
+  const handleCardHover = (card) => {
+    setHoveredCard(card);
   };
 
   const handleClearDeck = () => {
@@ -257,19 +311,19 @@ function App() {
 
       <div className="flex min-h-screen">
         {/* Sidebar */}
-        {!showDeck && (
-          <Sidebar
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            filters={filters}
-            setFilters={setFilters}
-            addKeyword={addKeyword}
-            removeKeyword={removeKeyword}
-            uniqueValues={uniqueValues}
-            isOpen={sidebarOpen}
-            onToggle={() => setSidebarOpen(!sidebarOpen)}
-          />
-        )}
+        <Sidebar
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          filters={filters}
+          setFilters={setFilters}
+          addKeyword={addKeyword}
+          removeKeyword={removeKeyword}
+          uniqueValues={uniqueValues}
+          isOpen={sidebarOpen}
+          onToggle={() => setSidebarOpen(!sidebarOpen)}
+          isCollapsed={sidebarCollapsed}
+          onCollapseToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        />
 
         {/* Main Content */}
         <div className="flex-1 min-w-0">
@@ -288,7 +342,14 @@ function App() {
                 <PWAInstallButton />
                 <div className="flex gap-4">
                   <button
-                    onClick={() => setShowDeck(!showDeck)}
+                    onClick={() => {
+                      if (!showDeck) {
+                        userSwitchedToDeckRef.current = true;
+                      } else {
+                        userSwitchedToDeckRef.current = false;
+                      }
+                      setShowDeck(!showDeck);
+                    }}
                     className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
                   >
                     {showDeck ? "Card search" : "Deck view"} ({deckStats.total}{" "}
@@ -377,74 +438,129 @@ function App() {
                   clearImageCache={clearImageCache}
                 />
 
-                {/* Deck Content */}
-                <div className="space-y-6">
-                  {/* Stronghold */}
-                  <DeckSection
-                    title="Stronghold"
-                    cards={deckByType.Stronghold}
-                    deck={deck}
-                    getDeckCount={getDeckCount}
-                    handleAddToDeck={handleAddToDeck}
-                    handleRemoveFromDeck={handleRemoveFromDeck}
-                    deckImageViewMode={deckImageViewMode}
-                    reloadTick={reloadTick}
-                    deckViewMode={deckViewMode}
-                  />
-
-                  {/* Sensei */}
-                  <DeckSection
-                    title="Sensei"
-                    cards={deckByType.Sensei}
-                    deck={deck}
-                    getDeckCount={getDeckCount}
-                    handleAddToDeck={handleAddToDeck}
-                    handleRemoveFromDeck={handleRemoveFromDeck}
-                    deckImageViewMode={deckImageViewMode}
-                    reloadTick={reloadTick}
-                    deckViewMode={deckViewMode}
-                  />
-
-                  {/* Dynasty Deck */}
-                  <div className="bg-white rounded-xl shadow-lg p-6">
-                    <h2 className="text-2xl font-bold mb-4">
-                      Dynasty Deck ({deckStats.dynasty} cards)
-                    </h2>
-                    {Object.entries(deckByType.Dynasty).map(([type, cards]) => (
-                      <DeckTypeSection
-                        key={type}
-                        type={type}
-                        cards={cards}
-                        deck={deck}
-                        getDeckCount={getDeckCount}
-                        handleAddToDeck={handleAddToDeck}
-                        handleRemoveFromDeck={handleRemoveFromDeck}
-                        deckImageViewMode={deckImageViewMode}
-                        reloadTick={reloadTick}
-                        deckViewMode={deckViewMode}
-                      />
-                    ))}
+                {/* Modern Deck View with Side Panel */}
+                <div className="flex gap-6">
+                  {/* Deck List - Left Side */}
+                  <div className="flex-1">
+                    <ModernDeckView
+                      deckByType={deckByType}
+                      deck={deck}
+                      getDeckCount={getDeckCount}
+                      handleAddToDeck={handleAddToDeck}
+                      handleRemoveFromDeck={handleRemoveFromDeck}
+                      deckImageViewMode={deckImageViewMode}
+                      reloadTick={reloadTick}
+                      deckViewMode={deckViewMode}
+                      onCardHover={handleCardHover}
+                      hoveredCard={hoveredCard}
+                    />
                   </div>
 
-                  {/* Fate Deck */}
-                  <div className="bg-white rounded-xl shadow-lg p-6">
-                    <h2 className="text-2xl font-bold mb-4">
-                      Fate Deck ({deckStats.fate} cards)
-                    </h2>
-                    {Object.entries(deckByType.Fate).map(([type, cards]) => (
-                      <DeckTypeSection
-                        key={type}
-                        type={type}
-                        cards={cards}
-                        deck={deck}
-                        getDeckCount={getDeckCount}
-                        handleAddToDeck={handleAddToDeck}
-                        handleRemoveFromDeck={handleRemoveFromDeck}
-                        deckImageViewMode={deckImageViewMode}
-                        reloadTick={reloadTick}
-                        deckViewMode={deckViewMode}
-                      />
-                    ))}
+                  {/* Card Preview Panel - Right Side */}
+                  <div className="w-80 flex-shrink-0">
+                    <div className="sticky top-4">
+                      {hoveredCard ? (
+                        <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4">
+                          {/* Card Image */}
+                          <div className="mb-4">
+                            <img
+                              src={hoveredCard.imagePath}
+                              alt={hoveredCard.name}
+                              className="w-full h-auto rounded-lg shadow-sm"
+                              onError={(e) => {
+                                e.target.style.display = "none";
+                                e.target.nextSibling.style.display = "flex";
+                              }}
+                            />
+                            <div className="w-full h-48 bg-gray-100 rounded-lg flex items-center justify-center hidden">
+                              <span className="text-gray-500 text-sm">
+                                Image not available
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Card Info */}
+                          <div className="space-y-3">
+                            <div>
+                              <h3 className="font-bold text-gray-900 text-lg">
+                                {hoveredCard.name}
+                              </h3>
+                              <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
+                                <span className="bg-gray-100 px-2 py-1 rounded text-xs">
+                                  {hoveredCard.type}
+                                </span>
+                                {hoveredCard.cost && (
+                                  <span>Cost: {hoveredCard.cost}</span>
+                                )}
+                                {hoveredCard.force && (
+                                  <span>Force: {hoveredCard.force}</span>
+                                )}
+                                {hoveredCard.chi && (
+                                  <span>Chi: {hoveredCard.chi}</span>
+                                )}
+                              </div>
+                            </div>
+
+                            {hoveredCard.text && (
+                              <div className="text-sm text-gray-700">
+                                <p className="line-clamp-6">
+                                  {hoveredCard.text.replace(/<[^>]*>/g, "")}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Deck Controls */}
+                            <div className="flex items-center justify-between pt-3 border-t border-gray-200">
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() =>
+                                    handleRemoveFromDeck(hoveredCard.id)
+                                  }
+                                  disabled={
+                                    getDeckCount(deck, hoveredCard.id) === 0
+                                  }
+                                  className="w-8 h-8 bg-red-100 text-red-600 rounded-full hover:bg-red-200 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed text-sm transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center"
+                                  title="Remove from deck"
+                                >
+                                  −
+                                </button>
+                                <span className="w-8 h-8 bg-blue-50 text-blue-700 rounded-full text-sm font-medium flex items-center justify-center border border-blue-200">
+                                  {getDeckCount(deck, hoveredCard.id)}
+                                </span>
+                                <button
+                                  onClick={() => handleAddToDeck(hoveredCard)}
+                                  className="w-8 h-8 bg-green-100 text-green-600 rounded-full hover:bg-green-200 text-sm transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center"
+                                  title="Add to deck"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-8 text-center">
+                          <div className="text-gray-400 mb-4">
+                            <svg
+                              className="w-16 h-16 mx-auto"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={1}
+                                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                              />
+                            </svg>
+                          </div>
+                          <p className="text-gray-500 text-sm">
+                            Hover over a card to see details
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

@@ -78,7 +78,14 @@ export const getDeckTotal = (deck) => {
  */
 export const getDynastyCount = (deck) => {
   return deck
-    .filter((card) => CARD_TYPES.DYNASTY.includes(card.type.toLowerCase()))
+    .filter((card) => {
+      const cardType = Array.isArray(card.type) ? card.type[0] : card.type;
+      return (
+        cardType &&
+        typeof cardType === "string" &&
+        CARD_TYPES.DYNASTY.includes(cardType.toLowerCase())
+      );
+    })
     .reduce((total, card) => total + card.quantity, 0);
 };
 
@@ -89,7 +96,14 @@ export const getDynastyCount = (deck) => {
  */
 export const getFateCount = (deck) => {
   return deck
-    .filter((card) => CARD_TYPES.FATE.includes(card.type.toLowerCase()))
+    .filter((card) => {
+      const cardType = Array.isArray(card.type) ? card.type[0] : card.type;
+      return (
+        cardType &&
+        typeof cardType === "string" &&
+        CARD_TYPES.FATE.includes(cardType.toLowerCase())
+      );
+    })
     .reduce((total, card) => total + card.quantity, 0);
 };
 
@@ -112,10 +126,22 @@ export const getDeckValidation = (deck) => {
   const fateCount = getFateCount(deck);
   const uniqueCount = getUniqueCount(deck);
 
-  const strongholds = deck.filter(
-    (card) => card.type.toLowerCase() === "stronghold"
-  );
-  const senseis = deck.filter((card) => card.type.toLowerCase() === "sensei");
+  const strongholds = deck.filter((card) => {
+    const cardType = Array.isArray(card.type) ? card.type[0] : card.type;
+    return (
+      cardType &&
+      typeof cardType === "string" &&
+      cardType.toLowerCase() === "stronghold"
+    );
+  });
+  const senseis = deck.filter((card) => {
+    const cardType = Array.isArray(card.type) ? card.type[0] : card.type;
+    return (
+      cardType &&
+      typeof cardType === "string" &&
+      cardType.toLowerCase() === "sensei"
+    );
+  });
 
   const errors = [];
   const warnings = [];
@@ -198,7 +224,9 @@ export const getDeckByType = (deck) => {
   };
 
   groupedDeck.forEach((card) => {
-    const type = card.type.toLowerCase();
+    const cardType = Array.isArray(card.type) ? card.type[0] : card.type;
+    const type =
+      cardType && typeof cardType === "string" ? cardType.toLowerCase() : "";
 
     if (type === "stronghold") {
       sections.Stronghold.push(card);

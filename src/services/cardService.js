@@ -91,7 +91,8 @@ export const loadCards = async () => {
     }
 
     // Save the cards to cache for future use (only if they have image paths)
-    saveCardsWithImagePaths(transformedCards);
+    // Temporarily disabled to avoid localStorage quota exceeded error
+    // saveCardsWithImagePaths(transformedCards);
 
     return transformedCards;
   } catch (error) {

@@ -13,12 +13,22 @@ export const filterByText = (cards, searchTerm) => {
 
   return cards.filter((card) => {
     // Search in name (transformed field)
-    if (card.name && card.name.toLowerCase().includes(term)) {
+    if (
+      card.name &&
+      typeof card.name === "string" &&
+      card.name.toLowerCase().includes(term)
+    ) {
       return true;
     }
 
     // Search in text (transformed to string)
-    if (card.text && card.text.toLowerCase().includes(term)) {
+    if (
+      card.text &&
+      Array.isArray(card.text) &&
+      card.text[0] &&
+      typeof card.text[0] === "string" &&
+      card.text[0].toLowerCase().includes(term)
+    ) {
       return true;
     }
 
@@ -47,8 +57,14 @@ export const filterByClan = (cards, clan) => {
 
   return cards.filter((card) => {
     // Check if card has clan alignment (transformed to string)
-    if (card.clan && card.clan.toLowerCase() === clan.toLowerCase()) {
-      return true;
+    if (card.clan) {
+      const cardClan = Array.isArray(card.clan) ? card.clan[0] : card.clan;
+      if (
+        typeof cardClan === "string" &&
+        cardClan.toLowerCase() === clan.toLowerCase()
+      ) {
+        return true;
+      }
     }
 
     // Check keywords for clan

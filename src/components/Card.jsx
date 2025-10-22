@@ -87,7 +87,13 @@ const Card = ({
 
   const getClanBackgroundColor = (clan) => {
     if (!clan) return "bg-gray-50 border-gray-200"; // Default for no clan
-    switch (clan.toLowerCase()) {
+
+    // Handle clan as array or string
+    const clanName = Array.isArray(clan) ? clan[0] : clan;
+    if (!clanName || typeof clanName !== "string")
+      return "bg-gray-50 border-gray-200";
+
+    switch (clanName.toLowerCase()) {
       case "crab":
         return "bg-blue-50 border-blue-200"; // Deep blue for Crab
       case "crane":
@@ -115,7 +121,12 @@ const Card = ({
 
   const getClanColor = (clan) => {
     if (!clan) return "bg-gray-600"; // Default for no clan
-    switch (clan.toLowerCase()) {
+
+    // Handle clan as array or string
+    const clanName = Array.isArray(clan) ? clan[0] : clan;
+    if (!clanName || typeof clanName !== "string") return "bg-gray-600";
+
+    switch (clanName.toLowerCase()) {
       case "crab":
         return "bg-blue-600"; // Deep blue for Crab
       case "crane":
