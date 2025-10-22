@@ -12,7 +12,7 @@ export const filterByText = (cards, searchTerm) => {
   const term = searchTerm.toLowerCase();
 
   return cards.filter((card) => {
-    // Search in name (transformed field)
+    // Search in name (transformed field from title)
     if (
       card.name &&
       typeof card.name === "string" &&
@@ -24,10 +24,8 @@ export const filterByText = (cards, searchTerm) => {
     // Search in text (transformed to string)
     if (
       card.text &&
-      Array.isArray(card.text) &&
-      card.text[0] &&
-      typeof card.text[0] === "string" &&
-      card.text[0].toLowerCase().includes(term)
+      typeof card.text === "string" &&
+      card.text.toLowerCase().includes(term)
     ) {
       return true;
     }
