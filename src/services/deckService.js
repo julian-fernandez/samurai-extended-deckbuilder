@@ -341,6 +341,26 @@ export const importDeck = (deckText, allCards) => {
   const missingCards = [];
   const bannedCards = [];
 
+  // Enhanced normalization function for deck import
+  const normalizeName = (name) => {
+    if (!name) return "";
+    let normalized = name
+      .toLowerCase()
+      .replace(/&#149;/g, "-")
+      .replace(/\s+/g, " ")
+      .replace(/-/g, " ")
+      .trim();
+
+    normalized = normalized.replace(/\s+exp(\d*)\b/g, " experienced$1");
+    normalized = normalized.replace(
+      /\s+experienced\s+(\d+)/g,
+      " experienced$1"
+    );
+    normalized = normalized.replace(/\s+experienced(\d*)\b/g, " experienced$1");
+
+    return normalized;
+  };
+
   lines.forEach((line) => {
     const trimmed = line.trim();
 
@@ -354,25 +374,35 @@ export const importDeck = (deckText, allCards) => {
     if (match) {
       const quantity = parseInt(match[1]);
       const cardName = match[2].trim();
+      const normalizedCardName = normalizeName(cardName);
 
-      // Find card by exact name match
-      const card = allCards.find((c) => {
-        // Check both the transformed name field and original data fields
-        const nameMatch = c.name === cardName;
-        const formattedMatch = c.formattedtitle === cardName;
-        const titleMatch = c.title?.[0] === cardName;
-        const originalTitleMatch = c.originalData?.title?.[0] === cardName;
-        const originalFormattedMatch =
-          c.originalData?.formattedtitle === cardName;
+      // Find card with improved matching for variations
+      const matchingCards = allCards.filter((c) => {
+        const fieldsToCheck = [
+          c.name,
+          c.formattedtitle,
+          c.title?.[0],
+          c.originalData?.title?.[0],
+          c.originalData?.formattedtitle,
+          c.puretexttitle,
+        ];
 
-        return (
-          nameMatch ||
-          formattedMatch ||
-          titleMatch ||
-          originalTitleMatch ||
-          originalFormattedMatch
-        );
+        return fieldsToCheck.some((field) => {
+          if (!field) return false;
+          return normalizeName(field) === normalizedCardName;
+        });
       });
+
+      // Selection logic:
+      // 1. Exact match in puretexttitle
+      // 2. Exact match in formattedtitle
+      // 3. Exact match in title
+      // 4. First match
+      const card =
+        matchingCards.find((c) => c.puretexttitle === cardName) ||
+        matchingCards.find((c) => c.formattedtitle === cardName) ||
+        matchingCards.find((c) => c.title?.[0] === cardName) ||
+        matchingCards[0];
 
       if (card) {
         // Check if card is banned
