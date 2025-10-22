@@ -9,7 +9,6 @@ const ModernDeckView = ({
   handleRemoveFromDeck,
   deckImageViewMode,
   reloadTick,
-  deckViewMode,
   onCardHover,
   hoveredCard,
 }) => {

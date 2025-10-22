@@ -3,8 +3,6 @@ import DeckImageExport from "./DeckImageExport";
 import { clearAllCaches } from "../services/imageService";
 
 const DeckControls = ({
-  deckViewMode,
-  setDeckViewMode,
   handleExportDeck,
   showImport,
   setShowImport,
@@ -17,14 +15,6 @@ const DeckControls = ({
     <div className="bg-white rounded-xl shadow-lg p-6">
       <div className="flex flex-wrap gap-4 items-center justify-between mb-4">
         <div className="flex gap-4">
-          <button
-            onClick={() =>
-              setDeckViewMode(deckViewMode === "compact" ? "full" : "compact")
-            }
-            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-          >
-            {deckViewMode === "compact" ? "Full View" : "Compact View"}
-          </button>
           <button
             onClick={handleExportDeck}
             className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"

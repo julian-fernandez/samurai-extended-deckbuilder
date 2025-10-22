@@ -9,7 +9,6 @@ const Card = ({
   onRemoveFromDeck,
   viewMode = "text",
   reloadTick = 0,
-  cardViewMode = "full", // "full" or "compact" for deck view
   showQuantity = false, // Show quantity for deck view
 }) => {
   const [imageLoadFailed, setImageLoadFailed] = useState(false);
@@ -164,108 +163,6 @@ const Card = ({
   // If in image mode but no image found or image failed to load, fall back to text mode for this card
   const effectiveViewMode =
     viewMode === "image" && (!imagePath || imageLoadFailed) ? "text" : viewMode;
-
-  // Compact view for deck
-  if (cardViewMode === "compact") {
-    return (
-      <div
-        className={`${getClanBackgroundColor(
-          card.clan
-        )} backdrop-blur-sm rounded-2xl shadow-lg border overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 transform relative p-4`}
-      >
-        <div className="flex justify-between items-center mb-2 pr-12">
-          <h4 className="font-semibold text-sm">{card.name}</h4>
-          {showQuantity && (
-            <span className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded">
-              x{card.quantity}
-            </span>
-          )}
-        </div>
-
-        {/* Image View for Compact */}
-        {effectiveViewMode === "image" && imagePath && (
-          <div className="mb-2">
-            <LazyImage
-              src={imagePath}
-              alt={card.name}
-              className="w-full h-auto rounded shadow-sm"
-              fallbackClassName="w-full h-32 rounded"
-              card={card}
-              onError={() => setImageLoadFailed(true)}
-            />
-            {card.hasBackside && card.backsideImagePath && (
-              <div className="mt-2 flex justify-end">
-                <button
-                  onClick={() => setShowBack((v) => !v)}
-                  className="p-1.5 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 transition-colors"
-                  title={showBack ? "Show front" : "Show back"}
-                >
-                  <svg
-                    className="w-3 h-3"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                    />
-                  </svg>
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Flip button for compact text view */}
-        {effectiveViewMode === "text" &&
-          card.hasBackside &&
-          card.backsideImagePath && (
-            <div className="mb-2 flex justify-end">
-              <button
-                onClick={() => setShowBack((v) => !v)}
-                className="p-1.5 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 transition-colors"
-                title={showBack ? "Show front" : "Show back"}
-              >
-                <svg
-                  className="w-3 h-3"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                  />
-                </svg>
-              </button>
-            </div>
-          )}
-
-        {/* Subtle corner buttons */}
-        <div className="absolute top-2 right-2 flex items-center gap-2">
-          <button
-            onClick={() => onRemoveFromDeck(card.id)}
-            className="w-5 h-5 bg-red-100 text-red-600 rounded-full hover:bg-red-200 text-xs transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center"
-            title="Remove from deck"
-          >
-            −
-          </button>
-          <button
-            onClick={() => onAddToDeck(card)}
-            className="w-5 h-5 bg-green-100 text-green-600 rounded-full hover:bg-green-200 text-xs transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center"
-            title="Add to deck"
-          >
-            +
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div
@@ -492,7 +389,7 @@ const Card = ({
       </div>
 
       {/* In deck indicator - only show in search view */}
-      {deckCount > 0 && cardViewMode === "full" && !showQuantity && (
+      {deckCount > 0 && !showQuantity && (
         <div className="absolute top-10 right-2">
           <span className="text-xs text-green-600 font-medium bg-green-50 px-2 py-1 rounded-full border border-green-200">
             In deck
