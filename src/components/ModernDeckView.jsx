@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Card from "./Card";
+import { DECK_RULES } from "../constants/index.js";
 
 const ModernDeckView = ({
   deckByType,
@@ -84,6 +85,20 @@ const ModernDeckView = ({
     );
   };
 
+  // Calculate total Dynasty and Fate counts
+  const totalDynastyCards = Object.values(deckByType.Dynasty).reduce(
+    (sum, cards) =>
+      sum +
+      cards.reduce((cardSum, card) => cardSum + getDeckCount(deck, card.id), 0),
+    0
+  );
+  const totalFateCards = Object.values(deckByType.Fate).reduce(
+    (sum, cards) =>
+      sum +
+      cards.reduce((cardSum, card) => cardSum + getDeckCount(deck, card.id), 0),
+    0
+  );
+
   return (
     <div className="space-y-4">
       {/* Stronghold */}
@@ -92,127 +107,140 @@ const ModernDeckView = ({
       {/* Sensei */}
       {renderCardSection("Sensei", deckByType.Sensei, "bg-blue-50")}
 
+      {/* Pregame Holdings */}
+      {renderCardSection(
+        "Pregame Holdings",
+        deckByType.PregameHoldings || [],
+        "bg-indigo-50"
+      )}
+
       {/* Dynasty Deck */}
-      {Object.entries(deckByType.Dynasty).map(([type, cards]) => {
-        const totalCards = cards.reduce(
-          (sum, card) => sum + getDeckCount(deck, card.id),
-          0
-        );
-        return (
-          <div
-            key={type}
-            className="bg-white rounded-lg shadow-sm border border-gray-200"
-          >
-            <div className="px-4 py-3 border-b border-gray-200 bg-green-50">
-              <h3 className="text-sm font-semibold text-gray-800">
-                {type} ({totalCards} cards, {cards.length} unique)
-              </h3>
-            </div>
-            <div className="p-4">
-              <div className="grid grid-cols-4 gap-4">
-                {cards.map((card) => {
-                  const count = getDeckCount(deck, card.id);
-                  return (
-                    <div
-                      key={card.id}
-                      className="flex items-center justify-between py-2 px-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer border border-gray-100"
-                      onMouseEnter={() => handleCardHover(card)}
-                      onMouseLeave={handleCardLeave}
-                    >
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <span className="text-sm font-medium text-gray-600 min-w-[1.5rem]">
-                          {count}
-                        </span>
-                        <span className="text-sm font-medium text-gray-900 truncate">
-                          {card.name}
-                        </span>
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="px-4 py-3 border-b border-gray-200 bg-green-50">
+          <h3 className="text-sm font-semibold text-gray-800">
+            Dynasty ({totalDynastyCards}/{DECK_RULES.MIN_DYNASTY} cards)
+          </h3>
+        </div>
+        <div className="space-y-4 p-4">
+          {Object.entries(deckByType.Dynasty).map(([type, cards]) => {
+            const totalCards = cards.reduce(
+              (sum, card) => sum + getDeckCount(deck, card.id),
+              0
+            );
+            if (totalCards === 0) return null;
+            return (
+              <div key={type}>
+                <h4 className="text-xs font-semibold text-gray-600 mb-2">
+                  {type} ({totalCards} cards, {cards.length} unique)
+                </h4>
+                <div className="grid grid-cols-4 gap-4">
+                  {cards.map((card) => {
+                    const count = getDeckCount(deck, card.id);
+                    return (
+                      <div
+                        key={card.id}
+                        className="flex items-center justify-between py-2 px-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer border border-gray-100"
+                        onMouseEnter={() => handleCardHover(card)}
+                        onMouseLeave={handleCardLeave}
+                      >
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <span className="text-sm font-medium text-gray-600 min-w-[1.5rem]">
+                            {count}
+                          </span>
+                          <span className="text-sm font-medium text-gray-900 truncate">
+                            {card.name}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => handleRemoveFromDeck(card.id)}
+                            disabled={count === 0}
+                            className="w-5 h-5 bg-red-100 text-red-600 rounded-full hover:bg-red-200 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed text-xs transition-all duration-200 flex items-center justify-center"
+                            title="Remove from deck"
+                          >
+                            −
+                          </button>
+                          <button
+                            onClick={() => handleAddToDeck(card)}
+                            className="w-5 h-5 bg-green-100 text-green-600 rounded-full hover:bg-green-200 text-xs transition-all duration-200 flex items-center justify-center"
+                            title="Add to deck"
+                          >
+                            +
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => handleRemoveFromDeck(card.id)}
-                          disabled={count === 0}
-                          className="w-5 h-5 bg-red-100 text-red-600 rounded-full hover:bg-red-200 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed text-xs transition-all duration-200 flex items-center justify-center"
-                          title="Remove from deck"
-                        >
-                          −
-                        </button>
-                        <button
-                          onClick={() => handleAddToDeck(card)}
-                          className="w-5 h-5 bg-green-100 text-green-600 rounded-full hover:bg-green-200 text-xs transition-all duration-200 flex items-center justify-center"
-                          title="Add to deck"
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          </div>
-        );
-      })}
+            );
+          })}
+        </div>
+      </div>
 
       {/* Fate Deck */}
-      {Object.entries(deckByType.Fate).map(([type, cards]) => {
-        const totalCards = cards.reduce(
-          (sum, card) => sum + getDeckCount(deck, card.id),
-          0
-        );
-        return (
-          <div
-            key={type}
-            className="bg-white rounded-lg shadow-sm border border-gray-200"
-          >
-            <div className="px-4 py-3 border-b border-gray-200 bg-orange-50">
-              <h3 className="text-sm font-semibold text-gray-800">
-                {type} ({totalCards} cards, {cards.length} unique)
-              </h3>
-            </div>
-            <div className="p-4">
-              <div className="grid grid-cols-4 gap-4">
-                {cards.map((card) => {
-                  const count = getDeckCount(deck, card.id);
-                  return (
-                    <div
-                      key={card.id}
-                      className="flex items-center justify-between py-2 px-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer border border-gray-100"
-                      onMouseEnter={() => handleCardHover(card)}
-                      onMouseLeave={handleCardLeave}
-                    >
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <span className="text-sm font-medium text-gray-600 min-w-[1.5rem]">
-                          {count}
-                        </span>
-                        <span className="text-sm font-medium text-gray-900 truncate">
-                          {card.name}
-                        </span>
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="px-4 py-3 border-b border-gray-200 bg-orange-50">
+          <h3 className="text-sm font-semibold text-gray-800">
+            Fate ({totalFateCards}/{DECK_RULES.MIN_FATE} cards)
+          </h3>
+        </div>
+        <div className="space-y-4 p-4">
+          {Object.entries(deckByType.Fate).map(([type, cards]) => {
+            const totalCards = cards.reduce(
+              (sum, card) => sum + getDeckCount(deck, card.id),
+              0
+            );
+            if (totalCards === 0) return null;
+            return (
+              <div key={type}>
+                <h4 className="text-xs font-semibold text-gray-600 mb-2">
+                  {type} ({totalCards} cards, {cards.length} unique)
+                </h4>
+                <div className="grid grid-cols-4 gap-4">
+                  {cards.map((card) => {
+                    const count = getDeckCount(deck, card.id);
+                    return (
+                      <div
+                        key={card.id}
+                        className="flex items-center justify-between py-2 px-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer border border-gray-100"
+                        onMouseEnter={() => handleCardHover(card)}
+                        onMouseLeave={handleCardLeave}
+                      >
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <span className="text-sm font-medium text-gray-600 min-w-[1.5rem]">
+                            {count}
+                          </span>
+                          <span className="text-sm font-medium text-gray-900 truncate">
+                            {card.name}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => handleRemoveFromDeck(card.id)}
+                            disabled={count === 0}
+                            className="w-5 h-5 bg-red-100 text-red-600 rounded-full hover:bg-red-200 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed text-xs transition-all duration-200 flex items-center justify-center"
+                            title="Remove from deck"
+                          >
+                            −
+                          </button>
+                          <button
+                            onClick={() => handleAddToDeck(card)}
+                            className="w-5 h-5 bg-green-100 text-green-600 rounded-full hover:bg-green-200 text-xs transition-all duration-200 flex items-center justify-center"
+                            title="Add to deck"
+                          >
+                            +
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => handleRemoveFromDeck(card.id)}
-                          disabled={count === 0}
-                          className="w-5 h-5 bg-red-100 text-red-600 rounded-full hover:bg-red-200 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed text-xs transition-all duration-200 flex items-center justify-center"
-                          title="Remove from deck"
-                        >
-                          −
-                        </button>
-                        <button
-                          onClick={() => handleAddToDeck(card)}
-                          className="w-5 h-5 bg-green-100 text-green-600 rounded-full hover:bg-green-200 text-xs transition-all duration-200 flex items-center justify-center"
-                          title="Add to deck"
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          </div>
-        );
-      })}
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 };

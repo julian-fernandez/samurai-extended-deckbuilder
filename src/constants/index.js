@@ -91,7 +91,7 @@ export const L5R_KEYWORDS = [
   "Clans",
   "Expendable",
   "Conspiracy",
-  "Battle/Open",
+  "Battle Maiden",
   "Kharmic",
   "Ancestor",
   "Spirit",

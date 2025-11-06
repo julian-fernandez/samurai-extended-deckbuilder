@@ -1,12 +1,66 @@
 import { CARD_TYPES, DECK_RULES } from "../constants/index.js";
 
 /**
+ * Check if a card is Border Keep or Bamboo Harvesters (any version)
+ * @param {Object} card - Card object to check
+ * @returns {boolean} True if the card is BK or BH
+ */
+const isPregameHolding = (card) => {
+  const cardName = card.name || card.puretexttitle || "";
+  const normalizedName = cardName.toLowerCase().trim();
+  return (
+    normalizedName.startsWith("border keep") ||
+    normalizedName.startsWith("bamboo harvesters")
+  );
+};
+
+/**
  * Add a card to the deck
  * @param {Array} deck - Current deck array
  * @param {Object} card - Card object to add
  * @returns {Array} Updated deck array
  */
 export const addToDeck = (deck, card) => {
+  // Check if this is a pregame holding (Border Keep or Bamboo Harvesters)
+  if (isPregameHolding(card)) {
+    // Check if we already have a BK or BH of the same type
+    const cardName = (card.name || card.puretexttitle || "")
+      .toLowerCase()
+      .trim();
+    const isBorderKeep = cardName.startsWith("border keep");
+    const isBambooHarvesters = cardName.startsWith("bamboo harvesters");
+
+    // Check if we already have any version of this pregame holding
+    const existingPregameHolding = deck.find((d) => {
+      const dName = (d.name || d.puretexttitle || "").toLowerCase().trim();
+      if (isBorderKeep) {
+        return dName.startsWith("border keep");
+      } else if (isBambooHarvesters) {
+        return dName.startsWith("bamboo harvesters");
+      }
+      return false;
+    });
+
+    if (existingPregameHolding) {
+      // If we already have one, replace it with the new version
+      return deck.map((d) => {
+        const dName = (d.name || d.puretexttitle || "").toLowerCase().trim();
+        if (isBorderKeep && dName.startsWith("border keep")) {
+          return { ...card, quantity: 1 };
+        } else if (
+          isBambooHarvesters &&
+          dName.startsWith("bamboo harvesters")
+        ) {
+          return { ...card, quantity: 1 };
+        }
+        return d;
+      });
+    }
+
+    // If we don't have one yet, add it
+    return [...deck, { ...card, quantity: 1 }];
+  }
+
   const existingCard = deck.find((d) => d.id === card.id);
 
   if (existingCard) {
@@ -79,6 +133,10 @@ export const getDeckTotal = (deck) => {
 export const getDynastyCount = (deck) => {
   return deck
     .filter((card) => {
+      // Exclude pregame holdings (Border Keep and Bamboo Harvesters)
+      if (isPregameHolding(card)) {
+        return false;
+      }
       const cardType = Array.isArray(card.type) ? card.type[0] : card.type;
       return (
         cardType &&
@@ -143,6 +201,22 @@ export const getDeckValidation = (deck) => {
     );
   });
 
+  // Get pregame holdings (Border Keep and Bamboo Harvesters)
+  const borderKeeps = deck.filter((card) => {
+    if (!isPregameHolding(card)) return false;
+    const cardName = (card.name || card.puretexttitle || "")
+      .toLowerCase()
+      .trim();
+    return cardName.startsWith("border keep");
+  });
+  const bambooHarvesters = deck.filter((card) => {
+    if (!isPregameHolding(card)) return false;
+    const cardName = (card.name || card.puretexttitle || "")
+      .toLowerCase()
+      .trim();
+    return cardName.startsWith("bamboo harvesters");
+  });
+
   const errors = [];
   const warnings = [];
 
@@ -171,6 +245,20 @@ export const getDeckValidation = (deck) => {
     errors.push("Deck can only contain 1 Sensei");
   }
 
+  // Check Border Keep count (must have exactly 1)
+  if (borderKeeps.length === 0) {
+    errors.push("Deck must contain exactly 1 Border Keep");
+  } else if (borderKeeps.length > 1) {
+    errors.push("Deck can only contain 1 Border Keep");
+  }
+
+  // Check Bamboo Harvesters count (must have exactly 1)
+  if (bambooHarvesters.length === 0) {
+    errors.push("Deck must contain exactly 1 Bamboo Harvesters");
+  } else if (bambooHarvesters.length > 1) {
+    errors.push("Deck can only contain 1 Bamboo Harvesters");
+  }
+
   // Check for too many copies
   deck.forEach((card) => {
     if (
@@ -192,6 +280,8 @@ export const getDeckValidation = (deck) => {
     uniqueCount,
     strongholdCount: strongholds.length,
     senseiCount: senseis.length,
+    borderKeepCount: borderKeeps.length,
+    bambooHarvestersCount: bambooHarvesters.length,
   };
 };
 
@@ -207,6 +297,7 @@ export const getDeckByType = (deck) => {
   const sections = {
     Stronghold: [],
     Sensei: [],
+    PregameHoldings: [],
     Dynasty: {
       Personalities: [],
       Holdings: [],
@@ -224,6 +315,12 @@ export const getDeckByType = (deck) => {
   };
 
   groupedDeck.forEach((card) => {
+    // Check if this is a pregame holding first
+    if (isPregameHolding(card)) {
+      sections.PregameHoldings.push(card);
+      return;
+    }
+
     const cardType = Array.isArray(card.type) ? card.type[0] : card.type;
     const type =
       cardType && typeof cardType === "string" ? cardType.toLowerCase() : "";
@@ -236,7 +333,10 @@ export const getDeckByType = (deck) => {
       if (type === "personality") {
         sections.Dynasty.Personalities.push(card);
       } else if (type === "holding") {
-        sections.Dynasty.Holdings.push(card);
+        // Skip pregame holdings, they're already handled above
+        if (!isPregameHolding(card)) {
+          sections.Dynasty.Holdings.push(card);
+        }
       } else if (type === "celestial") {
         sections.Dynasty.Celestials.push(card);
       } else if (type === "region") {
@@ -284,6 +384,15 @@ export const exportDeck = (deck) => {
   if (sections.Sensei.length > 0) {
     deckText += "# Sensei\n";
     sections.Sensei.forEach((card) => {
+      deckText += `${card.quantity} ${card.name}\n`;
+    });
+    deckText += "\n";
+  }
+
+  // Pregame Holdings (Border Keep and Bamboo Harvesters)
+  if (sections.PregameHoldings.length > 0) {
+    deckText += "# Pregame Holdings\n";
+    sections.PregameHoldings.forEach((card) => {
       deckText += `${card.quantity} ${card.name}\n`;
     });
     deckText += "\n";
@@ -380,28 +489,35 @@ export const importDeck = (deckText, allCards) => {
       const matchingCards = allCards.filter((c) => {
         const fieldsToCheck = [
           c.name,
-          c.formattedtitle,
-          c.title?.[0],
           c.originalData?.title?.[0],
           c.originalData?.formattedtitle,
-          c.puretexttitle,
+          c.originalData?.puretexttitle,
         ];
 
         return fieldsToCheck.some((field) => {
           if (!field) return false;
-          return normalizeName(field) === normalizedCardName;
+          // Check both normalized and exact matches
+          return (
+            normalizeName(field) === normalizedCardName ||
+            field === cardName ||
+            field.toLowerCase() === cardName.toLowerCase()
+          );
         });
       });
 
       // Selection logic:
-      // 1. Exact match in puretexttitle
-      // 2. Exact match in formattedtitle
-      // 3. Exact match in title
-      // 4. First match
+      // 1. Exact match in name
+      // 2. Exact match in originalData.puretexttitle
+      // 3. Exact match in originalData.formattedtitle
+      // 4. Exact match in originalData.title
+      // 5. First match
       const card =
-        matchingCards.find((c) => c.puretexttitle === cardName) ||
-        matchingCards.find((c) => c.formattedtitle === cardName) ||
-        matchingCards.find((c) => c.title?.[0] === cardName) ||
+        matchingCards.find((c) => c.name === cardName) ||
+        matchingCards.find((c) => c.originalData?.puretexttitle === cardName) ||
+        matchingCards.find(
+          (c) => c.originalData?.formattedtitle === cardName
+        ) ||
+        matchingCards.find((c) => c.originalData?.title?.[0] === cardName) ||
         matchingCards[0];
 
       if (card) {

@@ -64,6 +64,14 @@ for (const card of cards) {
     cardName.replace(/ - exp3$/, " - Experienced 3"),
     cardName.replace(/ - exp4$/, " - Experienced 4"),
     cardName.replace(/ - exp5$/, " - Experienced 5"),
+    // Handle space/hyphen variations - convert spaces to hyphens first, then handle exp
+    cardName.replace(/ /g, "-").replace(/-exp$/, " - Experienced"),
+    cardName.replace(/ /g, "-").replace(/-exp2$/, " - Experienced 2"),
+    cardName.replace(/ /g, "-").replace(/-exp3$/, " - Experienced 3"),
+    cardName.replace(/ /g, "-").replace(/-exp4$/, " - Experienced 4"),
+    cardName.replace(/ /g, "-").replace(/-exp5$/, " - Experienced 5"),
+    // Also try the reverse - convert hyphens to spaces
+    cardName.replace(/-/g, " "),
   ];
 
   let foundImage = null;
