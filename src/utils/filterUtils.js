@@ -114,10 +114,15 @@ export const filterByRange = (cards, field, min, max) => {
   }
 
   return cards.filter((card) => {
-    const value = card[field];
+    let value = card[field];
 
     if (value === undefined || value === null) {
       return false;
+    }
+
+    // Handle array values (from raw JSON structure)
+    if (Array.isArray(value)) {
+      value = value[0];
     }
 
     // Values are already strings in transformed cards

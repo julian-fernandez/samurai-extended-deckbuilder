@@ -152,12 +152,31 @@ function isSamuraiExtendedLegal(card) {
     "emperor",
     "samurai",
     "ivory",
-    "20F",
+    "20f", // Use lowercase for comparison
   ];
 
-  return card.legal.some((legalValue) =>
+  // Check if card has the required legal tags
+  const hasLegalTag = card.legal.some((legalValue) =>
     samuraiExtendedLegalValues.includes(legalValue.toLowerCase())
   );
+
+  if (!hasLegalTag) {
+    return false; // Not legal in Samurai Extended format
+  }
+
+  // Exclude cards that are ONLY in promo/promotional sets AND don't have other legal editions
+  // BUT: If a card is only in promo but has legal tags (like "emperor"), it's still legal
+  const editions = Array.isArray(card.edition) ? card.edition : [card.edition];
+  const promoEditions = ["promo", "promotional"];
+  const isOnlyPromo = editions.every(
+    (e) => e && promoEditions.includes(e.toLowerCase())
+  );
+
+  // If card is only in promo sets, it's still legal if it has the right legal tags
+  // (which we already checked above)
+  // So we only exclude if it's ONLY promo AND doesn't have legal tags (already handled above)
+
+  return true; // Card has legal tags, so it's legal
 }
 
 console.log("=== BUILDING JSON FROM XML V3 ===");
@@ -199,7 +218,11 @@ for (const xmlCard of xmlCardList) {
     honor: xmlCard.honor_req ? [xmlCard.honor_req] : [],
     focus: xmlCard.focus ? [xmlCard.focus] : [],
     rarity: xmlCard.rarity ? [xmlCard.rarity] : [],
-    set: xmlCard.edition ? [xmlCard.edition] : [],
+    set: xmlCard.edition
+      ? Array.isArray(xmlCard.edition)
+        ? xmlCard.edition
+        : [xmlCard.edition]
+      : [],
     artist: xmlCard.artist ? [xmlCard.artist] : [],
     flavor: xmlCard.flavor ? [xmlCard.flavor] : [],
     legality: xmlCard.legal

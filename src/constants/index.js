@@ -92,6 +92,7 @@ export const L5R_KEYWORDS = [
   "Expendable",
   "Conspiracy",
   "Battle Maiden",
+  "Emerald Champion",
   "Kharmic",
   "Ancestor",
   "Spirit",
