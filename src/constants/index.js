@@ -69,6 +69,7 @@ export const L5R_KEYWORDS = [
   "Fire",
   "Shugenja",
   "Ninja",
+  "Fortune",
   "Home",
   "Reserve",
   "Interrupt",

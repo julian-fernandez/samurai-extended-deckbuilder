@@ -51,8 +51,8 @@ function extractKeywordsFromText(text) {
   if (!text || typeof text !== "string") return [];
 
   // Only extract keywords from the very first <b> block (the actual keywords)
-  // This should be at the very beginning of the text, before any <br> tags
-  const firstBrIndex = text.indexOf("<br>");
+  // This should be at the very beginning of the text, before any <br> or <BR> tags
+  const firstBrIndex = text.search(/<br>|<BR>/i);
   const keywordText = firstBrIndex > 0 ? text.substring(0, firstBrIndex) : text;
 
   // Look for the first <b> block only
@@ -62,7 +62,13 @@ function extractKeywordsFromText(text) {
 
     // Split by common separators and clean up
     const keywords = [];
-    const parts = boldText.split(/[•&#8226;&#149;]/);
+    // Replace HTML entities and bullet characters with a delimiter, then split
+    const delimiter = "|||";
+    const normalizedText = boldText
+      .replace(/&#8226;/g, delimiter)
+      .replace(/&#149;/g, delimiter)
+      .replace(/•/g, delimiter);
+    const parts = normalizedText.split(delimiter);
     for (const part of parts) {
       const cleanPart = part.trim();
 
@@ -85,39 +91,78 @@ function extractKeywordsFromText(text) {
 function extractCardText(text) {
   if (!text || typeof text !== "string") return "";
 
-  // First, extract keywords from <b> tags to know what to remove
-  const boldMatches = text.match(/<b>([^<]+)<\/b>/g);
-  let cleanText = text;
+  // List of action words that should be preserved in text (even if they're also keywords)
+  const actionWords = [
+    "Limited",
+    "Battle",
+    "Reaction",
+    "Open",
+    "Political",
+    "Political Reaction",
+    "Ninja Open",
+    "Ninja Battle",
+  ];
 
+  // Find the first <br> or <BR> tag to identify the keyword block
+  const firstBrIndex = text.search(/<br>|<BR>/i);
+  const keywordBlock = firstBrIndex > 0 ? text.substring(0, firstBrIndex) : "";
+  const brLength =
+    firstBrIndex > 0
+      ? text.substring(firstBrIndex, firstBrIndex + 4).toLowerCase() === "<br>"
+        ? 4
+        : 4
+      : 0;
+  const textAfterKeywords =
+    firstBrIndex > 0 ? text.substring(firstBrIndex + brLength) : text;
+
+  // Remove the keyword block entirely (it contains only keywords)
+  // Start with text after keywords (which may have more <br> tags for line breaks)
+  let cleanText = textAfterKeywords;
+
+  // Now process remaining <b> tags - these are action words or other formatting
+  const boldMatches = cleanText.match(/<b>([^<]+)<\/b>/g);
   if (boldMatches) {
-    // Only remove <b> tags that contain actual keywords, not action words like "Reaction:", "Battle:", etc.
     boldMatches.forEach((match) => {
       const content = match.replace(/<\/?b>/g, "").trim();
 
-      // Don't remove if it's an action word like "Reaction:", "Battle:", "Open:", etc.
-      // or if it's a single word that's not a keyword
-      if (
-        content.endsWith(":") ||
-        (content.length < 20 &&
-          !L5R_KEYWORDS.some((k) =>
-            k.toLowerCase().includes(content.toLowerCase())
-          ))
-      ) {
+      // Check if this is an action word (even if it's also a keyword)
+      const isActionWord = actionWords.some((action) =>
+        content.toLowerCase().startsWith(action.toLowerCase())
+      );
+
+      // Check if there's already a colon immediately after the tag
+      const matchIndex = cleanText.indexOf(match);
+      const afterMatch = cleanText.substring(matchIndex + match.length);
+      const hasColonAfter = afterMatch.trim().startsWith(":");
+
+      // If it ends with ":" or is an action word, keep the content
+      if (content.endsWith(":") || isActionWord) {
         // Keep the content but remove the <b> tags
-        cleanText = cleanText.replace(match, content);
+        // If it doesn't end with ":" and there's no colon after, add ":" if it's an action word
+        let replacement = content;
+        if (isActionWord && !content.endsWith(":") && !hasColonAfter) {
+          replacement = content + ":";
+        }
+        cleanText = cleanText.replace(match, replacement);
       } else {
-        // Remove the entire <b> tag and content for actual keywords
-        cleanText = cleanText.replace(match, "");
+        // For other <b> tags, just remove the tags but keep content
+        cleanText = cleanText.replace(match, content);
       }
     });
   }
 
-  // Remove HTML tags but keep content
+  // Convert <br> and <BR> tags to spaces (for line breaks in text)
+  cleanText = cleanText.replace(/<br>|<BR>/gi, " ");
+
+  // Remove any remaining HTML tags but keep content
   cleanText = cleanText.replace(/<[^>]*>/g, "");
 
-  // Remove common keyword separators and clean up
+  // Remove common keyword separators (bullets) but keep all other text
+  // Replace HTML entities first, then bullet characters
   cleanText = cleanText
-    .replace(/[•&#8226;&#149;]/g, " ")
+    .replace(/&#8226;/g, " ") // HTML entity for bullet
+    .replace(/&#149;/g, " ") // HTML entity for bullet
+    .replace(/•/g, " ") // Unicode bullet character
     .replace(/\s+/g, " ")
     .trim();
 
