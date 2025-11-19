@@ -64,6 +64,9 @@ function extractKeywordsFromText(text) {
   // Remove HTML tags temporarily to check if text starts with regular words
   const textWithoutTags = keywordText.replace(/<[^>]*>/g, "").trim();
 
+  // Check if the text contains keyword separators (bullets) - if so, it's keywords, not a sentence
+  const hasKeywordSeparators = /[•&#8226;&#149;]/.test(keywordText);
+
   // Check if text starts with common sentence patterns (not keywords)
   // "Bow" as a keyword appears as "Bow •" (with bullet), "Bow this card" is a verb (with space + lowercase)
   // Exception: "All Clans" is a valid keyword, not a sentence
@@ -77,15 +80,21 @@ function extractKeywordsFromText(text) {
     /^Bow [a-z]/i, // "Bow this card" is a verb (followed by lowercase), not the keyword
   ];
 
-  // Check for two-word patterns that are sentences (but exclude "All Clans" which is a keyword)
+  // Check for two-word patterns that are sentences
+  // But if the text has keyword separators (bullets), it's keywords, not a sentence
+  // Also exclude known keywords like "All Clans", "Spider Clan", etc.
   const twoWordPattern = /^[A-Z][a-z]+ [a-z]+/i;
   const isTwoWordSentence =
+    !hasKeywordSeparators && // If it has bullets, it's keywords
     twoWordPattern.test(textWithoutTags) &&
-    !textWithoutTags.match(/^All Clans/i); // "All Clans" is a keyword, not a sentence
+    !textWithoutTags.match(
+      /^(All Clans|Spider Clan|Crane Clan|Dragon Clan|Phoenix Clan|Scorpion Clan|Crab Clan|Lion Clan|Mantis Clan|Unicorn Clan)/i
+    );
 
   const startsWithSentence =
-    sentenceStartPatterns.some((pattern) => pattern.test(textWithoutTags)) ||
-    isTwoWordSentence;
+    !hasKeywordSeparators && // If it has bullets, it's keywords, not a sentence
+    (sentenceStartPatterns.some((pattern) => pattern.test(textWithoutTags)) ||
+      isTwoWordSentence);
 
   if (startsWithSentence) {
     // Text starts with a sentence, not keywords - don't extract
