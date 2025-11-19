@@ -96,6 +96,7 @@ export const L5R_KEYWORDS = [
   "Crab Clan",
   "Lion Clan",
   "Mantis Clan",
+  "All Clans",
   "Spider Clan",
   "Unicorn Clan",
   "Tactician",

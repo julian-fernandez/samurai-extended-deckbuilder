@@ -66,6 +66,7 @@ function extractKeywordsFromText(text) {
 
   // Check if text starts with common sentence patterns (not keywords)
   // "Bow" as a keyword appears as "Bow •" (with bullet), "Bow this card" is a verb (with space + lowercase)
+  // Exception: "All Clans" is a valid keyword, not a sentence
   const sentenceStartPatterns = [
     /^This /i,
     /^Your /i,
@@ -74,12 +75,17 @@ function extractKeywordsFromText(text) {
     /^When /i,
     /^If /i,
     /^Bow [a-z]/i, // "Bow this card" is a verb (followed by lowercase), not the keyword
-    /^[A-Z][a-z]+ [a-z]+/i, // Two lowercase words after capital (like "This Personality")
   ];
 
-  const startsWithSentence = sentenceStartPatterns.some((pattern) =>
-    pattern.test(textWithoutTags)
-  );
+  // Check for two-word patterns that are sentences (but exclude "All Clans" which is a keyword)
+  const twoWordPattern = /^[A-Z][a-z]+ [a-z]+/i;
+  const isTwoWordSentence =
+    twoWordPattern.test(textWithoutTags) &&
+    !textWithoutTags.match(/^All Clans/i); // "All Clans" is a keyword, not a sentence
+
+  const startsWithSentence =
+    sentenceStartPatterns.some((pattern) => pattern.test(textWithoutTags)) ||
+    isTwoWordSentence;
 
   if (startsWithSentence) {
     // Text starts with a sentence, not keywords - don't extract
@@ -88,19 +94,54 @@ function extractKeywordsFromText(text) {
 
   // Extract keywords from the start of the text
   // Pattern 1: Keywords in <b> tags at the start: <b>Keyword1 • Keyword2</b>
-  const boldMatch = keywordText.match(/^<b>([^<]+)<\/b>/);
+  const boldMatch = keywordText.match(/^<b>([^<]+)<\/b>/i);
   if (boldMatch) {
-    const boldText = boldMatch[1].trim();
+    let boldText = boldMatch[1].trim();
+
+    // Special case: "All Clans Sensei" should extract "All Clans" as a keyword
+    if (boldText.toLowerCase().includes("all clans sensei")) {
+      boldText = boldText.replace(/all clans sensei/gi, "All Clans Sensei");
+      if (L5R_KEYWORDS.includes("All Clans")) {
+        keywords.push("All Clans");
+      }
+      // Remove "All Clans Sensei" from the text to process the rest
+      boldText = boldText.replace(/all clans sensei/gi, "").trim();
+    }
+
+    // Handle both bullets and periods as separators (Sensei cards use periods)
     const normalizedText = boldText
       .replace(/&#8226;/g, delimiter)
       .replace(/&#149;/g, delimiter)
-      .replace(/•/g, delimiter);
+      .replace(/•/g, delimiter)
+      .replace(/\.\s+/g, delimiter) // Periods followed by space
+      .replace(/\./g, delimiter); // Periods
     const parts = normalizedText.split(delimiter);
     for (const part of parts) {
-      const cleanPart = part.trim();
-      if (cleanPart && cleanPart.endsWith(":")) continue;
-      if (cleanPart && L5R_KEYWORDS.includes(cleanPart)) {
+      let cleanPart = part.trim();
+      if (!cleanPart || cleanPart.endsWith(":")) continue;
+
+      // Check if it's already a valid keyword
+      if (L5R_KEYWORDS.includes(cleanPart)) {
         keywords.push(cleanPart);
+      } else {
+        // For Sensei cards, check if it's a single-word clan name that should be "X Clan"
+        const clanNames = [
+          "Crab",
+          "Crane",
+          "Dragon",
+          "Phoenix",
+          "Scorpion",
+          "Lion",
+          "Mantis",
+          "Spider",
+          "Unicorn",
+        ];
+        if (clanNames.includes(cleanPart)) {
+          const clanKeyword = `${cleanPart} Clan`;
+          if (L5R_KEYWORDS.includes(clanKeyword)) {
+            keywords.push(clanKeyword);
+          }
+        }
       }
     }
   }
@@ -112,13 +153,35 @@ function extractKeywordsFromText(text) {
     const normalizedText = beforeBold
       .replace(/&#8226;/g, delimiter)
       .replace(/&#149;/g, delimiter)
-      .replace(/•/g, delimiter);
+      .replace(/•/g, delimiter)
+      .replace(/\.\s+/g, delimiter) // Periods followed by space
+      .replace(/\./g, delimiter); // Periods
     const parts = normalizedText.split(delimiter);
     for (const part of parts) {
-      const cleanPart = part.trim();
-      if (cleanPart && cleanPart.endsWith(":")) continue;
-      if (cleanPart && L5R_KEYWORDS.includes(cleanPart)) {
+      let cleanPart = part.trim();
+      if (!cleanPart || cleanPart.endsWith(":")) continue;
+
+      if (L5R_KEYWORDS.includes(cleanPart)) {
         keywords.push(cleanPart);
+      } else {
+        // For Sensei cards, check if it's a single-word clan name
+        const clanNames = [
+          "Crab",
+          "Crane",
+          "Dragon",
+          "Phoenix",
+          "Scorpion",
+          "Lion",
+          "Mantis",
+          "Spider",
+          "Unicorn",
+        ];
+        if (clanNames.includes(cleanPart)) {
+          const clanKeyword = `${cleanPart} Clan`;
+          if (L5R_KEYWORDS.includes(clanKeyword)) {
+            keywords.push(clanKeyword);
+          }
+        }
       }
     }
 
@@ -131,13 +194,35 @@ function extractKeywordsFromText(text) {
         const normalizedBold = boldContent
           .replace(/&#8226;/g, delimiter)
           .replace(/&#149;/g, delimiter)
-          .replace(/•/g, delimiter);
+          .replace(/•/g, delimiter)
+          .replace(/\.\s+/g, delimiter) // Periods followed by space
+          .replace(/\./g, delimiter); // Periods
         const boldParts = normalizedBold.split(delimiter);
         for (const part of boldParts) {
-          const cleanPart = part.trim();
-          if (cleanPart && cleanPart.endsWith(":")) continue;
-          if (cleanPart && L5R_KEYWORDS.includes(cleanPart)) {
+          let cleanPart = part.trim();
+          if (!cleanPart || cleanPart.endsWith(":")) continue;
+
+          if (L5R_KEYWORDS.includes(cleanPart)) {
             keywords.push(cleanPart);
+          } else {
+            // For Sensei cards, check if it's a single-word clan name
+            const clanNames = [
+              "Crab",
+              "Crane",
+              "Dragon",
+              "Phoenix",
+              "Scorpion",
+              "Lion",
+              "Mantis",
+              "Spider",
+              "Unicorn",
+            ];
+            if (clanNames.includes(cleanPart)) {
+              const clanKeyword = `${cleanPart} Clan`;
+              if (L5R_KEYWORDS.includes(clanKeyword)) {
+                keywords.push(clanKeyword);
+              }
+            }
           }
         }
       }
