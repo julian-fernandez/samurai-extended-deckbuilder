@@ -50,20 +50,47 @@ console.log("Parsed XML data");
 function extractKeywordsFromText(text) {
   if (!text || typeof text !== "string") return [];
 
-  // Only extract keywords from the very first <b> block (the actual keywords)
-  // This should be at the very beginning of the text, before any <br> or <BR> tags
+  // Only extract keywords from the very beginning of the text (the keyword block)
+  // This should be at the very start, before any <br> or <BR> tags
   const firstBrIndex = text.search(/<br>|<BR>/i);
   const keywordText = firstBrIndex > 0 ? text.substring(0, firstBrIndex) : text;
 
-  // Look for the first <b> block only
-  const firstBoldMatch = keywordText.match(/<b>([^<]+)<\/b>/);
-  if (firstBoldMatch) {
-    const boldText = firstBoldMatch[1].trim();
+  // Keywords should only be extracted if they're at the VERY START of the text
+  // If the text starts with regular words (like "This Personality has the"), skip extraction
 
-    // Split by common separators and clean up
-    const keywords = [];
-    // Replace HTML entities and bullet characters with a delimiter, then split
-    const delimiter = "|||";
+  const keywords = [];
+  const delimiter = "|||";
+
+  // Remove HTML tags temporarily to check if text starts with regular words
+  const textWithoutTags = keywordText.replace(/<[^>]*>/g, "").trim();
+
+  // Check if text starts with common sentence patterns (not keywords)
+  // "Bow" as a keyword appears as "Bow •" (with bullet), "Bow this card" is a verb (with space + lowercase)
+  const sentenceStartPatterns = [
+    /^This /i,
+    /^Your /i,
+    /^While /i,
+    /^After /i,
+    /^When /i,
+    /^If /i,
+    /^Bow [a-z]/i, // "Bow this card" is a verb (followed by lowercase), not the keyword
+    /^[A-Z][a-z]+ [a-z]+/i, // Two lowercase words after capital (like "This Personality")
+  ];
+
+  const startsWithSentence = sentenceStartPatterns.some((pattern) =>
+    pattern.test(textWithoutTags)
+  );
+
+  if (startsWithSentence) {
+    // Text starts with a sentence, not keywords - don't extract
+    return [];
+  }
+
+  // Extract keywords from the start of the text
+  // Pattern 1: Keywords in <b> tags at the start: <b>Keyword1 • Keyword2</b>
+  const boldMatch = keywordText.match(/^<b>([^<]+)<\/b>/);
+  if (boldMatch) {
+    const boldText = boldMatch[1].trim();
     const normalizedText = boldText
       .replace(/&#8226;/g, delimiter)
       .replace(/&#149;/g, delimiter)
@@ -71,20 +98,53 @@ function extractKeywordsFromText(text) {
     const parts = normalizedText.split(delimiter);
     for (const part of parts) {
       const cleanPart = part.trim();
-
-      // Skip non-keyword phrases that end with ":" (like "Reaction:", "Battle:", etc.)
       if (cleanPart && cleanPart.endsWith(":")) continue;
+      if (cleanPart && L5R_KEYWORDS.includes(cleanPart)) {
+        keywords.push(cleanPart);
+      }
+    }
+  }
 
-      // Only include if it's actually in the L5R_KEYWORDS list
+  // Pattern 2: Keywords before <b> tags: Keyword1 • Keyword2 • <b>Keyword3</b>
+  // (like "Bow • Two-Handed • <b>Weapon</b>")
+  const beforeBold = keywordText.split(/<b>/)[0].trim();
+  if (beforeBold && !startsWithSentence) {
+    const normalizedText = beforeBold
+      .replace(/&#8226;/g, delimiter)
+      .replace(/&#149;/g, delimiter)
+      .replace(/•/g, delimiter);
+    const parts = normalizedText.split(delimiter);
+    for (const part of parts) {
+      const cleanPart = part.trim();
+      if (cleanPart && cleanPart.endsWith(":")) continue;
       if (cleanPart && L5R_KEYWORDS.includes(cleanPart)) {
         keywords.push(cleanPart);
       }
     }
 
-    return [...new Set(keywords)]; // Remove duplicates
+    // Also extract keywords from <b> tags that appear after the initial keywords
+    // (like "Bow • Two-Handed • <b>Weapon</b>")
+    const allBoldMatches = keywordText.match(/<b>([^<]+)<\/b>/g);
+    if (allBoldMatches) {
+      for (const match of allBoldMatches) {
+        const boldContent = match.replace(/<\/?b>/g, "").trim();
+        const normalizedBold = boldContent
+          .replace(/&#8226;/g, delimiter)
+          .replace(/&#149;/g, delimiter)
+          .replace(/•/g, delimiter);
+        const boldParts = normalizedBold.split(delimiter);
+        for (const part of boldParts) {
+          const cleanPart = part.trim();
+          if (cleanPart && cleanPart.endsWith(":")) continue;
+          if (cleanPart && L5R_KEYWORDS.includes(cleanPart)) {
+            keywords.push(cleanPart);
+          }
+        }
+      }
+    }
   }
 
-  return [];
+  return [...new Set(keywords)]; // Remove duplicates
 }
 
 // Function to extract card text (non-keyword content)
@@ -167,6 +227,37 @@ function extractCardText(text) {
     .trim();
 
   return cleanText;
+}
+
+// Function to extract gold production from text for holdings
+function extractGoldProductionFromText(text, xmlCard) {
+  if (!text || typeof text !== "string") return null;
+  if (xmlCard["@_type"] !== "holding") return null;
+
+  // Look for patterns like "Produce X Gold" or "produce X Gold"
+  // Match patterns like:
+  // - "Produce 2 Gold"
+  // - "produce 2 Gold"
+  // - "Bow this card: Produce 2 Gold"
+  // - "Bow the X to produce 2 Gold"
+  // Take the first match (for cards with multiple options)
+  const patterns = [
+    /(?:bow[^:]*:?\s*)?produce\s+(\d+)\s+gold/gi,
+    /produce\s+(\d+)\s+gold/gi,
+  ];
+
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match && match[0]) {
+      // Extract the number from the first match
+      const numberMatch = match[0].match(/(\d+)/);
+      if (numberMatch && numberMatch[1]) {
+        return parseInt(numberMatch[1], 10);
+      }
+    }
+  }
+
+  return null;
 }
 
 // Function to get image path for a card using actual mapping
@@ -258,10 +349,22 @@ for (const xmlCard of xmlCardList) {
       : [],
     force: xmlCard.force ? [xmlCard.force] : [],
     chi: xmlCard.chi ? [xmlCard.chi] : [],
-    cost: xmlCard.cost ? [xmlCard.cost] : [],
+    // For strategies, default cost to 0 if not present
+    cost:
+      xmlCard.cost !== undefined && xmlCard.cost !== null && xmlCard.cost !== ""
+        ? [xmlCard.cost]
+        : xmlCard["@_type"] === "strategy"
+        ? [0]
+        : [],
     ph: xmlCard.personal_honor ? [xmlCard.personal_honor] : [],
     honor: xmlCard.honor_req ? [xmlCard.honor_req] : [],
     focus: xmlCard.focus ? [xmlCard.focus] : [],
+    // Gold production: first try XML field, then extract from text for holdings
+    goldProduction: xmlCard.gold_production
+      ? [
+          String(xmlCard.gold_production).replace(/^\+/, ""), // Remove leading + if present
+        ]
+      : [],
     rarity: xmlCard.rarity ? [xmlCard.rarity] : [],
     set: xmlCard.edition
       ? Array.isArray(xmlCard.edition)
@@ -316,6 +419,27 @@ for (const xmlCard of xmlCardList) {
 
     if (keywords.length > 0) {
       card.keywords = keywords;
+    }
+
+    // Special case: Cards with "Shrine" in the name should have "Temple" keyword if missing
+    // (Some older cards in XML are missing this keyword)
+    if (
+      xmlCard.name &&
+      xmlCard.name.toLowerCase().includes("shrine") &&
+      !card.keywords.includes("Temple")
+    ) {
+      card.keywords.push("Temple");
+    }
+
+    // If gold production is not in XML, try to extract from text
+    if (
+      xmlCard["@_type"] === "holding" &&
+      (!card.goldProduction || card.goldProduction.length === 0)
+    ) {
+      const goldFromText = extractGoldProductionFromText(xmlCard.text, xmlCard);
+      if (goldFromText !== null) {
+        card.goldProduction = [goldFromText];
+      }
     }
   }
 

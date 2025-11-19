@@ -245,62 +245,78 @@ const Card = ({
           {/* Card Stats */}
           <div className="p-6 min-h-64">
             <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
-              {/* Force - for Personalities and Items */}
+              {/* Force - for Personalities, Items, and Followers */}
               {card.force &&
-                (card.type === "Personality" || card.type === "Item") && (
+                (card.type?.toLowerCase() === "personality" ||
+                  card.type?.toLowerCase() === "item" ||
+                  card.type?.toLowerCase() === "follower") && (
                   <div className="flex justify-between">
                     <span className="text-gray-600">Force:</span>
                     <span className="font-semibold">{card.force}</span>
                   </div>
                 )}
-              {/* Chi - for Personalities and Items */}
+              {/* Chi - for Personalities, Items, and Followers */}
               {card.chi &&
-                (card.type === "Personality" || card.type === "Item") && (
+                (card.type?.toLowerCase() === "personality" ||
+                  card.type?.toLowerCase() === "item" ||
+                  card.type?.toLowerCase() === "follower") && (
                   <div className="flex justify-between">
                     <span className="text-gray-600">Chi:</span>
                     <span className="font-semibold">{card.chi}</span>
                   </div>
                 )}
-              {/* Cost - for Personalities, Holdings, Strategies, and Items */}
-              {card.cost &&
-                (card.type === "Personality" ||
-                  card.type === "Holding" ||
-                  card.type === "Strategy" ||
-                  card.type === "Item") && (
+              {/* Cost - for Personalities, Holdings, Strategies, Items, and Followers */}
+              {(card.type?.toLowerCase() === "personality" ||
+                card.type?.toLowerCase() === "holding" ||
+                card.type?.toLowerCase() === "strategy" ||
+                card.type?.toLowerCase() === "item" ||
+                card.type?.toLowerCase() === "follower") && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Cost:</span>
+                  <span className="font-semibold">{card.cost || "0"}</span>
+                </div>
+              )}
+              {/* Personal Honor - only for Personalities */}
+              {card.personalHonor &&
+                card.type?.toLowerCase() === "personality" && (
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Cost:</span>
-                    <span className="font-semibold">{card.cost}</span>
+                    <span className="text-gray-600">Personal Honor:</span>
+                    <span className="font-semibold">{card.personalHonor}</span>
                   </div>
                 )}
-              {/* Personal Honor - only for Personalities */}
-              {card.personalHonor && card.type === "Personality" && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Personal Honor:</span>
-                  <span className="font-semibold">{card.personalHonor}</span>
-                </div>
-              )}
-              {/* Honor Requirement - only for Personalities */}
-              {card.honorRequirement && card.type === "Personality" && (
+              {/* Honor Requirement - for Personalities (if present) and Followers (always) */}
+              {(card.type?.toLowerCase() === "personality" &&
+                card.honorRequirement &&
+                card.honorRequirement !== "0") ||
+              card.type?.toLowerCase() === "follower" ? (
                 <div className="flex justify-between">
                   <span className="text-gray-600">Honor Requirement:</span>
-                  <span className="font-semibold">{card.honorRequirement}</span>
+                  <span className="font-semibold">
+                    {card.honorRequirement || "0"}
+                  </span>
                 </div>
-              )}
-              {/* Focus - for any card that has it */}
-              {card.focus && (
+              ) : null}
+              {/* Focus - only for Fate deck cards (strategy, spell, item, follower, ring) */}
+              {(card.type?.toLowerCase() === "strategy" ||
+                card.type?.toLowerCase() === "spell" ||
+                card.type?.toLowerCase() === "item" ||
+                card.type?.toLowerCase() === "follower" ||
+                card.type?.toLowerCase() === "ring") && (
                 <div className="flex justify-between">
                   <span className="text-gray-600">Focus:</span>
-                  <span className="font-semibold">{card.focus}</span>
+                  <span className="font-semibold">{card.focus || "0"}</span>
                 </div>
               )}
               {/* Gold Production - only for Holdings and Strongholds */}
-              {card.goldProduction &&
-                (card.type === "Holding" || card.type === "Stronghold") && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Gold Production:</span>
-                    <span className="font-semibold">{card.goldProduction}</span>
-                  </div>
-                )}
+              {(card.type?.toLowerCase() === "holding" ||
+                card.type?.toLowerCase() === "stronghold") && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Gold Production:</span>
+                  <span className="font-semibold">
+                    {card.goldProduction || "0"}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Keywords */}
