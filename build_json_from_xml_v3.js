@@ -429,12 +429,18 @@ for (const xmlCard of xmlCardList) {
     console.log(`Processed ${processed}/${xmlCardList.length} cards`);
   }
 
+  // Fix known typos in card names
+  let cardName = xmlCard.name;
+  if (cardName === "Moto Nurgui") {
+    cardName = "Moto Nergui";
+  }
+
   // Extract basic info
   const card = {
     cardid: xmlCard["@_id"] || `xml_${processed}`,
-    title: [xmlCard.name],
-    puretexttitle: xmlCard.name,
-    formattedtitle: xmlCard.name,
+    title: [cardName],
+    puretexttitle: cardName,
+    formattedtitle: cardName,
     type: [xmlCard["@_type"] || "unknown"],
     clan: xmlCard.clan
       ? Array.isArray(xmlCard.clan)
@@ -537,8 +543,8 @@ for (const xmlCard of xmlCardList) {
     }
   }
 
-  // Handle image path using actual mapping
-  const imagePath = getImagePath(xmlCard);
+  // Handle image path using actual mapping (use corrected card name)
+  const imagePath = getImagePath({ name: cardName });
   if (imagePath) {
     card.imagePath = imagePath;
   }
