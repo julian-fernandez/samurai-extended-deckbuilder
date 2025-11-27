@@ -54,14 +54,22 @@ export const filterByClan = (cards, clan) => {
   }
 
   return cards.filter((card) => {
-    // Check if card has clan alignment (transformed to string)
+    // Check if card has clan alignment
     if (card.clan) {
-      const cardClan = Array.isArray(card.clan) ? card.clan[0] : card.clan;
-      if (
-        typeof cardClan === "string" &&
-        cardClan.toLowerCase() === clan.toLowerCase()
-      ) {
-        return true;
+      if (Array.isArray(card.clan)) {
+        // Check if any clan in the array matches (case-insensitive)
+        const matches = card.clan.some((cardClan) => {
+          if (typeof cardClan === "string") {
+            return cardClan.toLowerCase() === clan.toLowerCase();
+          }
+          return false;
+        });
+        if (matches) return true;
+      } else if (typeof card.clan === "string") {
+        // Single clan value
+        if (card.clan.toLowerCase() === clan.toLowerCase()) {
+          return true;
+        }
       }
     }
 

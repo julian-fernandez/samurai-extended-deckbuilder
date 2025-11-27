@@ -442,11 +442,27 @@ for (const xmlCard of xmlCardList) {
     puretexttitle: cardName,
     formattedtitle: cardName,
     type: [xmlCard["@_type"] || "unknown"],
-    clan: xmlCard.clan
-      ? Array.isArray(xmlCard.clan)
-        ? xmlCard.clan
-        : [xmlCard.clan]
-      : [],
+    clan: (() => {
+      const cardType = xmlCard["@_type"];
+      const isStrongholdOrPersonality =
+        cardType === "stronghold" || cardType === "personality";
+
+      if (xmlCard.clan) {
+        const clanArray = Array.isArray(xmlCard.clan)
+          ? xmlCard.clan
+          : [xmlCard.clan];
+        // Filter out empty strings
+        const validClans = clanArray.filter((c) => c && c.trim() !== "");
+        return validClans.length > 0
+          ? validClans
+          : isStrongholdOrPersonality
+          ? ["Unaligned"]
+          : [];
+      }
+
+      // If no clan and it's a stronghold or personality, mark as Unaligned
+      return isStrongholdOrPersonality ? ["Unaligned"] : [];
+    })(),
     force: xmlCard.force ? [xmlCard.force] : [],
     chi: xmlCard.chi ? [xmlCard.chi] : [],
     // For strategies, default cost to 0 if not present

@@ -234,10 +234,16 @@ const getUniqueValuesForField = (cards, field) => {
     if (value) {
       if (Array.isArray(value)) {
         // Handle array fields (like type, clan, etc.)
-        value.forEach((item) => valueSet.add(item));
+        value.forEach((item) => {
+          if (item && item.trim() !== "") {
+            valueSet.add(item);
+          }
+        });
       } else {
         // Handle single value fields
-        valueSet.add(value);
+        if (value && value.trim() !== "") {
+          valueSet.add(value);
+        }
       }
     }
   });
