@@ -134,6 +134,8 @@ function extractKeywordsFromText(text) {
         keywords.push(cleanPart);
       } else {
         // For Sensei cards, check if it's a single-word clan name that should be "X Clan"
+        // BUT: Don't convert if it's a valid standalone keyword (like "Dragon" as creature type)
+        // Only convert if it's clearly meant to be a clan (e.g., appears in context with other clan keywords)
         const clanNames = [
           "Crab",
           "Crane",
@@ -145,7 +147,12 @@ function extractKeywordsFromText(text) {
           "Spider",
           "Unicorn",
         ];
-        if (clanNames.includes(cleanPart)) {
+
+        // Special case: "Dragon" can be a creature type keyword, not just a clan
+        // Only convert to "Dragon Clan" if we're confident it's meant to be a clan
+        // For now, we'll be conservative and NOT auto-convert "Dragon" to "Dragon Clan"
+        // since "Dragon" as a standalone keyword is valid (creature type)
+        if (clanNames.includes(cleanPart) && cleanPart !== "Dragon") {
           const clanKeyword = `${cleanPart} Clan`;
           if (L5R_KEYWORDS.includes(clanKeyword)) {
             keywords.push(clanKeyword);
@@ -174,10 +181,11 @@ function extractKeywordsFromText(text) {
         keywords.push(cleanPart);
       } else {
         // For Sensei cards, check if it's a single-word clan name
+        // BUT: "Dragon" can be a creature type keyword, not just a clan
+        // So we don't auto-convert "Dragon" to "Dragon Clan"
         const clanNames = [
           "Crab",
           "Crane",
-          "Dragon",
           "Phoenix",
           "Scorpion",
           "Lion",
@@ -215,10 +223,11 @@ function extractKeywordsFromText(text) {
             keywords.push(cleanPart);
           } else {
             // For Sensei cards, check if it's a single-word clan name
+            // BUT: "Dragon" can be a creature type keyword, not just a clan
+            // So we don't auto-convert "Dragon" to "Dragon Clan"
             const clanNames = [
               "Crab",
               "Crane",
-              "Dragon",
               "Phoenix",
               "Scorpion",
               "Lion",

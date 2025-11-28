@@ -116,6 +116,8 @@ export const L5R_KEYWORDS = [
   "Forest",
   "Abomination",
   "Naga",
+  "Dragon",
+  "Winter",
   "Champion",
   "Pearl",
   "Asp",
