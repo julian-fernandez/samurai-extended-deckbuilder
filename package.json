@@ -10,10 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.100.0",
     "fast-xml-parser": "^5.3.0",
     "jspdf": "^3.0.3",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-router-dom": "^7.13.2",
     "xml2js": "^0.6.2"
   },
   "devDependencies": {

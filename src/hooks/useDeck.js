@@ -86,6 +86,7 @@ export const useDeck = (cards) => {
 
   return {
     deck,
+    setDeck,
     showImport,
     setShowImport,
     importText,
