@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import { MainLayout, Header } from "./components/layout";
 import { CardSearch, DeckBuilder } from "./components/features";
 import { useCards } from "./hooks/useCards";
@@ -8,14 +9,18 @@ import { usePagination } from "./hooks/usePagination";
 import { useScrollToTop } from "./hooks/useScrollToTop";
 import { useCardPreview } from "./hooks/useCardPreview";
 import { clearImageCache } from "./services/imageService";
+import SharedDeck from "./pages/SharedDeck.jsx";
+import DeckPage from "./pages/DeckPage.jsx";
 import "./App.css";
 
-function App() {
+function AppMain() {
+  const navigate = useNavigate();
   // Custom hooks
   const { cards, filteredCards, loading, uniqueValues, filterCardsData } =
     useCards();
   const {
     deck,
+    setDeck,
     showImport,
     setShowImport,
     importText,
@@ -119,16 +124,24 @@ function App() {
   // Render loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-xl text-gray-600">Loading cards...</p>
-        </div>
-      </div>
+      <Routes>
+        <Route path="/share/:token" element={<SharedDeck />} />
+        <Route
+          path="*"
+          element={
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-xl text-gray-600">Loading cards...</p>
+              </div>
+            </div>
+          }
+        />
+      </Routes>
     );
   }
 
-  return (
+  const mainApp = (
     <MainLayout
       sidebarProps={sidebarProps}
       showScrollToTop={showScrollToTop}
@@ -170,6 +183,8 @@ function App() {
           handleClearDeck={handleClearDeck}
           deckStats={deckStats}
           deck={deck}
+          setDeck={setDeck}
+          cards={cards}
           importText={importText}
           setImportText={setImportText}
           handleImportDeck={handleImportDeck}
@@ -182,10 +197,19 @@ function App() {
           handleRemoveFromDeck={handleRemoveFromDeck}
           onCardHover={handleCardHover}
           hoveredCard={hoveredCard}
+          onAfterSave={(id) => navigate(`/deck/${id}`)}
         />
       )}
     </MainLayout>
   );
+
+  return (
+    <Routes>
+      <Route path="/share/:token" element={<SharedDeck />} />
+      <Route path="/deck/:id" element={<DeckPage />} />
+      <Route path="*" element={mainApp} />
+    </Routes>
+  );
 }
 
-export default App;
+export default AppMain;

@@ -9,12 +9,30 @@ const DeckControls = ({
   handleClearDeck,
   deckStats,
   deck,
+  onSaveDeck,
+  onMyDecks,
 }) => {
   const [showImageExport, setShowImageExport] = useState(false);
   return (
     <div className="bg-white rounded-xl shadow-lg p-6">
       <div className="flex flex-wrap gap-4 items-center justify-between mb-4">
         <div className="flex gap-4">
+          {onSaveDeck && (
+            <button
+              onClick={onSaveDeck}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+            >
+              Save Deck
+            </button>
+          )}
+          {onMyDecks && (
+            <button
+              onClick={onMyDecks}
+              className="px-4 py-2 border border-indigo-300 text-indigo-700 rounded-lg hover:bg-indigo-50 transition-colors font-medium"
+            >
+              My Decks
+            </button>
+          )}
           <button
             onClick={handleExportDeck}
             className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"

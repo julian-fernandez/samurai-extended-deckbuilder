@@ -257,6 +257,57 @@ export const L5R_KEYWORDS = [
   "Edict",
   "Castle",
   "Kuniken",
+  // Experience levels (numbered)
+  "Experienced 2",
+  "Experienced 3",
+  "Experienced 4",
+  "Experienced 5",
+  "Experienced 2CW",
+  // Action timing types
+  "Kata",
+  "Recon",
+  "Iaijutsu",
+  "Heroic",
+  "Tactical",
+  // Personality traits
+  "Clan Champion",
+  "Merchant",
+  "Bitter Lies",
+  "Iron Crane",
+  "Henshin",
+  "Death Priest",
+  "Witch Hunter",
+  "Damned",
+  "Justicar",
+  "Ishiken",
+  "Plague",
+  "Order of the Spider",
+  "One Tribe",
+  "Actor",
+  "Seductress",
+  "Villain",
+  "Topaz Champion",
+  "Imperial Explorer",
+  "Advisor from the Shogun",
+  "Master Bowman",
+  "Mountaineer",
+  "Wasp Clan",
+  "Sensei",
+  // Creature/species types
+  "Ratling",
+  "Creature",
+  "Bog Hag",
+  "Kitsune",
+  // Item/weapon types
+  "Heavy Weapon",
+  "Nemuranai",
+  // Holding/terrain types
+  "Mountain",
+  "Geisha House",
+  "Fudo",
+  // Other mechanics
+  "Tattoo",
+  "Love Letter",
 ];
 
 // Card Types for deck categorization
