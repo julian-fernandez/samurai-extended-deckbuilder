@@ -1,0 +1,22 @@
+{
+  "name": "L5R Card Search & Deckbuilder",
+  "short_name": "L5R Cards",
+  "description": "Legend of the Five Rings card search and deckbuilding app for Samurai Extended format",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["games", "entertainment", "utilities"],
+  "lang": "en",
+  "scope": "/",
+  "prefer_related_applications": false
+}

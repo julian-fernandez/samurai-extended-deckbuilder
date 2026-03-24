@@ -85,7 +85,12 @@ dist
 
 # Gatsby files
 .cache/
-public
+# public/ is NOT ignored — Vite serves static assets from here.
+# Large/generated files within it are excluded individually below.
+public/images/
+public/cards.json
+public/cards_v3_backup.json
+public/samuraiextendeddb.xml
 
 # Storybook build outputs
 .out

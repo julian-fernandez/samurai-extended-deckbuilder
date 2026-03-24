@@ -1,0 +1,38 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="card" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e2e8f0;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="512" height="512" fill="url(#bg)" rx="64"/>
+  
+  <!-- Card shape -->
+  <rect x="64" y="128" width="384" height="256" fill="url(#card)" rx="16" stroke="#1e293b" stroke-width="4"/>
+  
+  <!-- Card border decoration -->
+  <rect x="80" y="144" width="352" height="224" fill="none" stroke="#3b82f6" stroke-width="2" rx="8"/>
+  
+  <!-- Japanese-style pattern -->
+  <circle cx="256" cy="200" r="24" fill="#dc2626" opacity="0.8"/>
+  <circle cx="200" cy="240" r="16" fill="#dc2626" opacity="0.6"/>
+  <circle cx="312" cy="240" r="16" fill="#dc2626" opacity="0.6"/>
+  <circle cx="256" cy="280" r="20" fill="#dc2626" opacity="0.7"/>
+  
+  <!-- Text area -->
+  <rect x="100" y="300" width="312" height="40" fill="#1e293b" rx="4"/>
+  <rect x="100" y="320" width="280" height="20" fill="#64748b" rx="2"/>
+  <rect x="100" y="340" width="240" height="20" fill="#64748b" rx="2"/>
+  
+  <!-- Corner decorations -->
+  <path d="M 64 128 L 80 144 L 80 128 Z" fill="#1e293b"/>
+  <path d="M 448 128 L 432 144 L 448 144 Z" fill="#1e293b"/>
+  <path d="M 64 384 L 80 368 L 80 384 Z" fill="#1e293b"/>
+  <path d="M 448 384 L 432 368 L 448 368 Z" fill="#1e293b"/>
+</svg>
