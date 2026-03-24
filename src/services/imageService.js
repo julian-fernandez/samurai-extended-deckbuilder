@@ -2,6 +2,21 @@
  * Service for finding and loading card images
  */
 
+// Base URL for images — set VITE_IMAGES_BASE_URL in your .env / Netlify env vars
+// to point at your Cloudflare R2 public bucket (e.g. https://pub-xxx.r2.dev).
+// Leave empty and images fall back to /images/ served locally.
+const IMAGES_BASE_URL = (import.meta.env.VITE_IMAGES_BASE_URL || "").replace(/\/$/, "");
+
+/**
+ * Resolve a relative image path to an absolute URL using the configured base.
+ * Paths that are already absolute (http/https) are returned unchanged.
+ */
+function resolveImagePath(path) {
+  if (!path) return path;
+  if (path.startsWith("http://") || path.startsWith("https://")) return path;
+  return IMAGES_BASE_URL + path;
+}
+
 // Cache for image paths to avoid repeated searches
 const imagePathCache = new Map();
 
@@ -164,17 +179,16 @@ export function findCardImage(card) {
   // Check cache first
   const cacheKey = cardName;
   if (imagePathCache.has(cacheKey)) {
-    const cachedPath = imagePathCache.get(cacheKey);
-    return cachedPath;
+    return resolveImagePath(imagePathCache.get(cacheKey));
   }
 
   // Check if card already has cached image path
   if (card.imagePath) {
     console.log(`Using cached imagePath for ${cardName}: ${card.imagePath}`);
-    imagePathCache.set(cacheKey, card.imagePath);
-    // Add cache-busting parameter to force reload
+    const resolved = resolveImagePath(card.imagePath);
+    imagePathCache.set(cacheKey, resolved);
     const cacheBuster = `?t=${Date.now()}`;
-    return card.imagePath + cacheBuster;
+    return resolved + cacheBuster;
   }
 
   // Get the sets this card is legal in
@@ -214,17 +228,14 @@ export function findCardImage(card) {
     if (!folders) continue;
 
     for (const folder of folders) {
-      const imagePath = `/images/${folder}/${alternativeNames[0]}.jpg`;
-      // Don't cache the path yet - let createLazyImage verify it exists
-      return imagePath;
+      return resolveImagePath(`/images/${folder}/${alternativeNames[0]}.jpg`);
     }
   }
 
   // Fallback: try all folders that contain any of our set names
   const allFolders = Object.values(SET_FOLDER_MAP).flat();
   for (const folder of allFolders) {
-    const imagePath = `/images/${folder}/${alternativeNames[0]}.jpg`;
-    return imagePath;
+    return resolveImagePath(`/images/${folder}/${alternativeNames[0]}.jpg`);
   }
 
   // Cache null result to avoid repeated failed searches
