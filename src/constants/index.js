@@ -325,6 +325,77 @@ export const DECK_RULES = {
   MAX_SENSEI: 1,
 };
 
+// ─── Samurai Extended banned card list ───────────────────────────────────────
+// Card names must match `puretexttitle` in the JSON (case-insensitive lookup).
+// "All Ancestor cards" are identified by card type === "ancestor" at load time.
+export const BANNED_CARD_NAMES = new Set([
+  // Strongholds
+  "Footholds of the Mad",
+  "Gates of the Second City",
+  "House of the Black Lion",
+  "The Governor's Estate",
+  "The Remote Monastery of the Dragon",
+  "The Shrine of Lady Sun",
+  "Embassy of the Crane",
+  "Kalani's Landing",
+  // Sensei
+  "Hisako Sensei",
+  "Izuna Sensei",
+  "Keigo Sensei",
+  "Tadanobu Sensei",
+  // Celestials
+  "The Wrath of Kali-Ma",
+  "The Inevitable Grasp of Conquest",
+  "Jurojin's Blessing",
+  // Events
+  "Political Standoff",
+  "The Wall is Breached",
+  "Twisted Fate",
+  // Holdings
+  "Charter of the Legion of Two Thousand",
+  "Corrupt Geisha House",
+  "Luxurious Silk",
+  "Missing Caravan",
+  "Rich Coffers",
+  "School of Wizardry",
+  "Stone of Remembrance",
+  // Personalities
+  "Akodo Kusamoto",
+  "Daidoji Soken",
+  "Ide Hinobu",
+  "Iuchi Wattu",
+  "Uta",
+  "Yoritomo Yashinko",
+  "Yoritomo Yusuke",
+  // Strategies
+  "A Kensai's Art",
+  "A Kensai's Will",
+  "A Kensai's Victory",
+  "Building Contract",
+  "Caught Unawares",
+  "Clash of Blades",
+  "First and Final Strike",
+  "Imperial Adjudication",
+  "Impromptu Duel",
+  "Investigation",
+  "Kamoko's Avatar",
+  "Lies, Lies, Lies",
+  "Masters of Steel",
+  "One Koku",
+  "Raze to the Ground",
+  "Resumed Hostilities",
+  "Superior Strategist",
+  "The Elements' Path",
+  "Unexpected Betrayal",
+  "Unshakable",
+  "Victory Through Deference",
+  // Items
+  "Koan's Jingasa",
+  "Koan's Robes",
+  // Spells
+  "Flame Lash",
+]);
+
 // Clan colors for UI
 export const CLAN_COLORS = {
   Crab: { bg: "bg-blue-50", text: "bg-blue-600", border: "border-blue-200" },

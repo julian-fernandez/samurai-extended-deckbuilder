@@ -217,6 +217,7 @@ export default function DeckEditor({
 
   const errors = deckValidation.errors;
   const warnings = deckValidation.warnings;
+  const bannedInDeck = deckValidation.bannedCards ?? [];
 
   return (
     <>
@@ -234,9 +235,14 @@ export default function DeckEditor({
             </div>
 
             {/* Validation summary */}
-            {errors.length > 0 && (
+            {bannedInDeck.length > 0 && (
+              <span className="text-xs font-bold text-white bg-red-600 px-2.5 py-1 rounded-full">
+                ⊘ {bannedInDeck.length} banned
+              </span>
+            )}
+            {errors.length > bannedInDeck.length && (
               <span className="text-xs font-semibold text-red-600 bg-red-50 px-2 py-1 rounded-full border border-red-200">
-                ✕ {errors.length} error{errors.length !== 1 ? "s" : ""}
+                ✕ {errors.length - bannedInDeck.length} error{errors.length - bannedInDeck.length !== 1 ? "s" : ""}
               </span>
             )}
             {isValid && deckStats.total > 0 && (
@@ -305,12 +311,28 @@ export default function DeckEditor({
             </div>
           </div>
 
-          {/* ── Validation errors ── */}
-          {errors.length > 0 && (
+          {/* ── Banned cards block ── */}
+          {bannedInDeck.length > 0 && (
+            <div className="bg-red-600 text-white rounded-xl px-4 py-3">
+              <p className="text-xs font-bold mb-1 uppercase tracking-wide">
+                ⊘ Banned in Samurai Extended — {bannedInDeck.length} card{bannedInDeck.length !== 1 ? "s" : ""}
+              </p>
+              <ul className="space-y-0.5 columns-2">
+                {bannedInDeck.map((c, i) => (
+                  <li key={i} className="text-xs opacity-90">• {c.name}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* ── Other validation errors ── */}
+          {errors.filter(e => !e.includes("is banned in")).length > 0 && (
             <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
               <p className="text-xs font-semibold text-red-700 mb-1">Deck errors</p>
               <ul className="space-y-0.5">
-                {errors.map((e, i) => <li key={i} className="text-xs text-red-600">• {e}</li>)}
+                {errors.filter(e => !e.includes("is banned in")).map((e, i) => (
+                  <li key={i} className="text-xs text-red-600">• {e}</li>
+                ))}
               </ul>
             </div>
           )}

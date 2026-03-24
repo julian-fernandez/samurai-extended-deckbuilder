@@ -271,10 +271,17 @@ export const getDeckValidation = (deck) => {
     }
   });
 
+  // Check for banned cards
+  const bannedInDeck = deck.filter((card) => card.banned);
+  bannedInDeck.forEach((card) => {
+    errors.push(`${card.name} is banned in Samurai Extended`);
+  });
+
   return {
     isValid: errors.length === 0,
     errors,
     warnings,
+    bannedCards: bannedInDeck,
     dynastyCount,
     fateCount,
     uniqueCount,

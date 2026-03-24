@@ -15,7 +15,11 @@ function CardRow({ card, count, onAdd, onRemove, isHovered, onHover, onLeave }) 
   return (
     <div
       className={`group flex items-center gap-1.5 px-2 py-1 rounded cursor-pointer transition-colors ${
-        isHovered ? "bg-indigo-50" : "hover:bg-slate-50"
+        card.banned
+          ? "bg-red-50 hover:bg-red-100"
+          : isHovered
+          ? "bg-indigo-50"
+          : "hover:bg-slate-50"
       }`}
       onMouseEnter={() => onHover(card)}
       onMouseLeave={onLeave}
@@ -23,10 +27,21 @@ function CardRow({ card, count, onAdd, onRemove, isHovered, onHover, onLeave }) 
       <span className="w-4 text-right text-xs font-mono font-bold text-slate-400 flex-shrink-0 select-none">
         {count}
       </span>
-      <span className={`flex-1 text-xs truncate ${isHovered ? "text-indigo-800 font-semibold" : "text-slate-800 font-medium"}`}>
+      <span className={`flex-1 text-xs truncate ${
+        card.banned
+          ? "text-red-700 font-semibold line-through"
+          : isHovered
+          ? "text-indigo-800 font-semibold"
+          : "text-slate-800 font-medium"
+      }`}>
         {card.name}
       </span>
-      {card.clan && (
+      {card.banned && (
+        <span className="flex-shrink-0 text-[9px] font-bold uppercase tracking-wider bg-red-600 text-white px-1.5 py-0.5 rounded">
+          banned
+        </span>
+      )}
+      {!card.banned && card.clan && (
         <span className="text-[10px] text-slate-300 hidden lg:block flex-shrink-0 max-w-[60px] truncate">
           {card.clan}
         </span>

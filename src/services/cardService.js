@@ -1,4 +1,4 @@
-import { SAMURAI_EXTENDED_SETS } from "../constants/index.js";
+import { SAMURAI_EXTENDED_SETS, BANNED_CARD_NAMES } from "../constants/index.js";
 import {
   extractKeywords,
   cleanTextFromKeywords,
@@ -11,6 +11,17 @@ import {
   filterByRange,
 } from "../utils/filterUtils.js";
 import { saveCardsWithImagePaths, loadImagePaths } from "./imageService.js";
+
+/**
+ * Determine if a raw card from JSON is banned in Samurai Extended.
+ * A card is banned if its puretexttitle matches the banlist OR if its type is "ancestor".
+ */
+const isBanned = (rawCard) => {
+  const name = rawCard.puretexttitle || rawCard.title?.[0] || "";
+  const type = (rawCard.type?.[0] || "").toLowerCase();
+  if (type === "ancestor") return true;
+  return BANNED_CARD_NAMES.has(name);
+};
 
 /**
  * Load and parse cards from JSON
@@ -64,7 +75,7 @@ export const loadCards = async () => {
       backsideText: card.backsideText || null,
       backsideSet: card.backsideSet || null,
       backsideKeywords: card.backsideKeywords || [],
-      banned: card.banned || false,
+      banned: isBanned(card),
       bannedReason: card.bannedReason || null,
       deck: card.deck?.[0] || "Dynasty",
       rarity: card.printing?.[0]?.rarity?.[0] || "Unknown",
