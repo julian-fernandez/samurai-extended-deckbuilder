@@ -7,7 +7,7 @@ import { useAuth } from "../../hooks/useAuth";
 import AuthModal from "../auth/AuthModal";
 import SaveDeckModal from "./SaveDeckModal";
 import SavedDecksList from "./SavedDecksList";
-import { clearAllCaches } from "../../services/imageService";
+import { clearAllCaches, findCardImage } from "../../services/imageService";
 import { DECK_RULES } from "../../constants/index.js";
 
 // ─── Tiny Stat Badge ───────────────────────────────────────────────────────────
@@ -88,14 +88,15 @@ function CardPreview({ card, getDeckCount, deck, handleAddToDeck, handleRemoveFr
   }
 
   const count = getDeckCount(deck, card.id);
+  const imageSrc = findCardImage(card);
 
   return (
     <div className="space-y-3">
       {/* Image */}
-      {card.imagePath && (
+      {imageSrc && (
         <div className="rounded-xl overflow-hidden border border-slate-100 shadow-sm">
           <img
-            src={card.imagePath}
+            src={imageSrc}
             alt={card.name}
             className="w-full h-auto"
             onError={(e) => { e.target.style.display = "none"; }}
