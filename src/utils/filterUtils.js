@@ -73,10 +73,12 @@ export const filterByClan = (cards, clan) => {
       }
     }
 
-    // Check keywords for clan
+    // Check for an explicit "{Clan} Clan" keyword (e.g. "Dragon Clan", "Crab Clan").
+    // Uses exact matching to avoid false positives from elemental keywords like "Dragon".
     if (card.keywords && Array.isArray(card.keywords)) {
-      return card.keywords.some((keyword) =>
-        keyword.toLowerCase().includes(clan.toLowerCase())
+      const clanKeyword = clan.toLowerCase() + " clan";
+      return card.keywords.some(
+        (keyword) => keyword.toLowerCase() === clanKeyword
       );
     }
 
