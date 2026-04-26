@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import {
   addToDeck,
   removeFromDeck,
@@ -21,17 +21,17 @@ export const useDeck = (cards) => {
   const [missingCards, setMissingCards] = useState([]);
 
   // Deck management functions
-  const handleAddToDeck = (card) => {
-    setDeck(addToDeck(deck, card));
-  };
+  const handleAddToDeck = useCallback((card) => {
+    setDeck((prev) => addToDeck(prev, card));
+  }, []);
 
-  const handleRemoveFromDeck = (cardId) => {
-    setDeck(removeFromDeck(deck, cardId));
-  };
+  const handleRemoveFromDeck = useCallback((cardId) => {
+    setDeck((prev) => removeFromDeck(prev, cardId));
+  }, []);
 
-  const handleClearDeck = () => {
+  const handleClearDeck = useCallback(() => {
     setDeck(clearDeck());
-  };
+  }, []);
 
   const handleExportDeck = () => {
     const deckText = exportDeck(deck);
@@ -70,19 +70,16 @@ export const useDeck = (cards) => {
     }
   };
 
-  // Get deck statistics
-  const deckStats = {
+  const deckStats = useMemo(() => ({
     total: getDeckTotal(deck),
     dynasty: getDynastyCount(deck),
     fate: getFateCount(deck),
     unique: getUniqueCount(deck),
-  };
+  }), [deck]);
 
-  // Get deck validation
-  const deckValidation = getDeckValidation(deck);
+  const deckValidation = useMemo(() => getDeckValidation(deck), [deck]);
 
-  // Get deck organized by type
-  const deckByType = getDeckByType(deck);
+  const deckByType = useMemo(() => getDeckByType(deck), [deck]);
 
   return {
     deck,

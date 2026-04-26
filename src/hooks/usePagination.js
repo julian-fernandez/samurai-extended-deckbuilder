@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 
 export const usePagination = (filteredCards, cardsPerPage = 24) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -12,10 +12,12 @@ export const usePagination = (filteredCards, cardsPerPage = 24) => {
     }
   }, [filteredCards]);
 
-  const totalPages = Math.ceil(filteredCards.length / cardsPerPage);
-  const startIndex = (currentPage - 1) * cardsPerPage;
-  const endIndex = startIndex + cardsPerPage;
-  const currentCards = filteredCards.slice(startIndex, endIndex);
+  const { totalPages, currentCards } = useMemo(() => {
+    const totalPages = Math.ceil(filteredCards.length / cardsPerPage);
+    const startIndex = (currentPage - 1) * cardsPerPage;
+    const currentCards = filteredCards.slice(startIndex, startIndex + cardsPerPage);
+    return { totalPages, currentCards };
+  }, [filteredCards, currentPage, cardsPerPage]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);

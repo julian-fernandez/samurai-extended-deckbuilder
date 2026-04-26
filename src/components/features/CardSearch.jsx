@@ -1,9 +1,9 @@
-import React from "react";
+import React, { memo } from "react";
 import Card from "../Card";
 import SearchViewToggle from "../SearchViewToggle";
 import Pagination from "../Pagination";
 
-const CardSearch = ({
+const CardSearch = memo(({
   currentCards,
   filteredCards,
   currentPage,
@@ -41,8 +41,8 @@ const CardSearch = ({
             key={card.id}
             card={card}
             deckCount={getDeckCount(deck, card.id)}
-            onAddToDeck={() => handleAddToDeck(card)}
-            onRemoveFromDeck={() => handleRemoveFromDeck(card.id)}
+            onAddToDeck={handleAddToDeck}
+            onRemoveFromDeck={handleRemoveFromDeck}
             viewMode={viewMode}
             reloadTick={reloadTick}
           />
@@ -57,6 +57,8 @@ const CardSearch = ({
       />
     </>
   );
-};
+});
+
+CardSearch.displayName = "CardSearch";
 
 export default CardSearch;

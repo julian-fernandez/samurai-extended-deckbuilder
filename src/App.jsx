@@ -62,9 +62,13 @@ function AppMain() {
   const prevFiltersRef = useRef({ searchTerm: "", filters: {} });
   const userSwitchedToDeckRef = useRef(false);
 
-  // Filter cards when dependencies change
+  // Filter cards when dependencies change — debounce search term to avoid
+  // filtering 6000+ cards on every keystroke
   useEffect(() => {
-    filterCardsData(searchTerm, filters);
+    const timer = setTimeout(() => {
+      filterCardsData(searchTerm, filters);
+    }, searchTerm ? 200 : 0); // instant clear, debounced search
+    return () => clearTimeout(timer);
   }, [cards, searchTerm, filters, filterCardsData]);
 
   // Switch to search view when filters change in deck view (but not when user manually switches to deck)
