@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useSavedDecks } from "../../hooks/useSavedDecks";
-import { exportDeck } from "../../services/deckService";
+import { exportDeck, getDeckByType } from "../../services/deckService";
 
 function CopyButton({ label, value, disabled, disabledTip }) {
   const [copied, setCopied] = useState(false);
@@ -64,7 +64,49 @@ export default function SharePanel({ deckId, deckMeta, setDeckMeta, deck, onClos
   };
 
   const handlePrint = () => {
-    window.print();
+    const sections = getDeckByType(deck);
+
+    const renderSection = (title, cards) => {
+      if (!cards || cards.length === 0) return "";
+      const total = cards.reduce((s, c) => s + c.quantity, 0);
+      const rows = cards
+        .map((c) => `<tr><td>${c.quantity}x</td><td>${c.name}</td></tr>`)
+        .join("");
+      return `<h3>${title} (${total})</h3><table>${rows}</table>`;
+    };
+
+    const html = `<!DOCTYPE html><html><head><title>Deck List</title>
+<style>
+  body { font-family: sans-serif; font-size: 13px; padding: 20px; color: #111; }
+  h2 { margin: 0 0 16px; font-size: 18px; }
+  h3 { margin: 16px 0 4px; font-size: 13px; font-weight: bold; text-transform: uppercase;
+       letter-spacing: 0.05em; color: #555; border-bottom: 1px solid #ddd; padding-bottom: 2px; }
+  table { border-collapse: collapse; width: 100%; margin-bottom: 4px; }
+  td { padding: 1px 6px 1px 0; }
+  td:first-child { width: 32px; font-weight: bold; color: #333; }
+  @media print { body { padding: 0; } }
+</style></head><body>
+<h2>Deck List</h2>
+${renderSection("Stronghold", sections.Stronghold)}
+${renderSection("Sensei", sections.Sensei)}
+${renderSection("Pregame Holdings", sections.PregameHoldings)}
+${renderSection("Personalities", sections.Dynasty?.Personalities)}
+${renderSection("Holdings", sections.Dynasty?.Holdings)}
+${renderSection("Celestials", sections.Dynasty?.Celestials)}
+${renderSection("Regions", sections.Dynasty?.Regions)}
+${renderSection("Events", sections.Dynasty?.Events)}
+${renderSection("Strategies", sections.Fate?.Strategies)}
+${renderSection("Spells", sections.Fate?.Spells)}
+${renderSection("Items", sections.Fate?.Items)}
+${renderSection("Followers", sections.Fate?.Followers)}
+${renderSection("Rings", sections.Fate?.Rings)}
+</body></html>`;
+
+    const win = window.open("", "_blank");
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    win.print();
   };
 
   const isPublic = deckMeta?.isPublic;

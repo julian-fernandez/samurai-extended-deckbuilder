@@ -139,11 +139,13 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(request)
         .then((networkResponse) => {
-          // Cache successful responses
-          if (networkResponse.status === 200) {
+          // Only cache same-origin, successful responses (cross-origin responses
+          // from R2 are opaque and cannot be put into the Cache API)
+          const isSameOrigin = new URL(request.url).origin === self.location.origin;
+          if (networkResponse.status === 200 && isSameOrigin) {
             const responseClone = networkResponse.clone();
             caches.open(STATIC_CACHE_NAME).then((cache) => {
-              cache.put(request, responseClone);
+              cache.put(request, responseClone).catch(() => {});
             });
           }
           return networkResponse;
