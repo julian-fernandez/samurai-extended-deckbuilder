@@ -379,7 +379,7 @@ export default function DeckEditor({
         </div>
 
         {/* ── Right: sticky card preview ── */}
-        <div className="w-64 flex-shrink-0">
+        <div className="w-80 flex-shrink-0">
           <div className="sticky top-4 bg-white border border-slate-200 rounded-2xl shadow-sm px-4 py-4">
             <CardPreview
               card={hoveredCard}
