@@ -99,3 +99,4 @@ public/samuraiextendeddb.xml
 # Temporary folders
 tmp/
 temp/keyword_audit_report.json
+.wrangler/
