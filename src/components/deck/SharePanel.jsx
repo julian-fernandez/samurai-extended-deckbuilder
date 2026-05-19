@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useSavedDecks } from "../../hooks/useSavedDecks";
 import { exportDeck } from "../../services/deckService";
-import DeckImageExport from "../DeckImageExport";
 
 function CopyButton({ label, value, disabled, disabledTip }) {
   const [copied, setCopied] = useState(false);
@@ -34,10 +33,9 @@ function CopyButton({ label, value, disabled, disabledTip }) {
   );
 }
 
-export default function SharePanel({ deckId, deckMeta, setDeckMeta, deck, onClose }) {
+export default function SharePanel({ deckId, deckMeta, setDeckMeta, deck, onClose, onPrint }) {
   const { updateDeck, togglePublic } = useSavedDecks();
   const [togglingPublic, setTogglingPublic] = useState(false);
-  const [showImageExport, setShowImageExport] = useState(false);
   const panelRef = useRef(null);
 
   // Close on outside click
@@ -67,7 +65,7 @@ export default function SharePanel({ deckId, deckMeta, setDeckMeta, deck, onClos
 
   const handlePrint = () => {
     onClose();
-    setShowImageExport(true);
+    onPrint?.();
   };
 
   const isPublic = deckMeta?.isPublic;
@@ -143,11 +141,5 @@ export default function SharePanel({ deckId, deckMeta, setDeckMeta, deck, onClos
       </div>
     </div>
 
-    {showImageExport && (
-      <DeckImageExport
-        deck={deck}
-        onClose={() => setShowImageExport(false)}
-      />
-    )}
   );
 }

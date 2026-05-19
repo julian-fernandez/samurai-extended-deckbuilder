@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import ModernDeckView from "../ModernDeckView";
 import SharePanel from "./SharePanel";
+import DeckImageExport from "../DeckImageExport";
 import { useSavedDecks, deserializeDeck } from "../../hooks/useSavedDecks";
 import { useAuth } from "../../hooks/useAuth";
 import AuthModal from "../auth/AuthModal";
@@ -173,6 +174,7 @@ export default function DeckEditor({
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showMyDecks, setShowMyDecks] = useState(false);
   const [showShare, setShowShare] = useState(false);
+  const [showImageExport, setShowImageExport] = useState(false);
   const [saving, setSaving] = useState(false);
   const shareRef = useRef(null);
 
@@ -287,6 +289,7 @@ export default function DeckEditor({
                     setDeckMeta={setDeckMeta}
                     deck={deck}
                     onClose={() => setShowShare(false)}
+                    onPrint={() => setShowImageExport(true)}
                   />
                 )}
               </div>
@@ -421,6 +424,13 @@ export default function DeckEditor({
 
       {showAuthModal && (
         <AuthModal onClose={() => setShowAuthModal(false)} />
+      )}
+
+      {showImageExport && (
+        <DeckImageExport
+          deck={deck}
+          onClose={() => setShowImageExport(false)}
+        />
       )}
     </>
   );

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { findCardImage } from "../services/imageService";
 import jsPDF from "jspdf";
 
 const DeckImageExport = ({ deck, onClose }) => {
@@ -50,21 +49,20 @@ const DeckImageExport = ({ deck, onClose }) => {
   }, [deck]);
 
   const loadImageAsBase64 = (imagePath) => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-        const dataURL = canvas.toDataURL("image/jpeg", 0.9);
-        resolve(dataURL);
-      };
-      img.onerror = () => reject(new Error("Failed to load image"));
-      img.src = imagePath;
-    });
+    return fetch(imagePath)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.blob();
+      })
+      .then(
+        (blob) =>
+          new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(new Error("FileReader failed"));
+            reader.readAsDataURL(blob);
+          })
+      );
   };
 
   const generatePDF = async () => {
@@ -98,7 +96,7 @@ const DeckImageExport = ({ deck, onClose }) => {
           const y = MARGIN_Y + row * CARD_HEIGHT_MM;
 
           try {
-            const imagePath = card.imagePath || findCardImage(card);
+            const imagePath = card.imagePath || null;
             if (imagePath) {
               const base64Image = await loadImageAsBase64(imagePath);
               pdf.addImage(
@@ -194,7 +192,7 @@ const DeckImageExport = ({ deck, onClose }) => {
             <ul className="list-disc list-inside space-y-1">
               <li>9 cards per A4 page (3×3 grid)</li>
               <li>No spacing between cards for easy cutting</li>
-              <li>Standard playing card size (70mm × 99mm)</li>
+              <li>Standard playing card size ({CARD_WIDTH_MM}mm × {CARD_HEIGHT_MM}mm)</li>
               <li>All {allCards.length} cards from your deck</li>
             </ul>
           </div>
