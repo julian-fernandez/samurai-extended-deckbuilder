@@ -176,19 +176,19 @@ export function findCardImage(card) {
     return null;
   }
 
-  // Check cache first
   const cacheKey = cardName;
-  if (imagePathCache.has(cacheKey)) {
-    return resolveImagePath(imagePathCache.get(cacheKey));
-  }
 
-  // Check if card already has cached image path
+  // card.imagePath (from JSON) takes priority over any stale localStorage cache
   if (card.imagePath) {
-    console.log(`Using cached imagePath for ${cardName}: ${card.imagePath}`);
     const resolved = resolveImagePath(card.imagePath);
     imagePathCache.set(cacheKey, resolved);
-    const cacheBuster = `?t=${Date.now()}`;
-    return resolved + cacheBuster;
+    return resolved;
+  }
+
+  // Fall back to in-memory cache (populated from localStorage) only when
+  // the card has no imagePath baked into the JSON data
+  if (imagePathCache.has(cacheKey)) {
+    return resolveImagePath(imagePathCache.get(cacheKey));
   }
 
   // Get the sets this card is legal in
@@ -257,10 +257,12 @@ export function createLazyImage(src, alt, className = "", card = null) {
     const img = new Image();
 
     img.onload = () => {
-      // Cache the successful image path
-      if (card && card.name) {
-        imagePathCache.set(card.name, src);
-        // Update the card object with the found image path
+      if (card) {
+        const titleKey =
+          (card.title && card.title[0]) || card.formattedtitle || card.name;
+        if (titleKey) {
+          imagePathCache.set(titleKey, src);
+        }
         card.imagePath = src;
       }
       resolve(src);
