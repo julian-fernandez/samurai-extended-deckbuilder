@@ -88,17 +88,17 @@ export const loadCards = async () => {
 
     console.log(`Loaded ${transformedCards.length} cards from JSON`);
 
-    // Try to load cached image paths and apply them to cards
+    // Apply cached image paths only for cards that have no path in the JSON
     const cachedImagePaths = loadImagePaths();
     if (cachedImagePaths) {
+      let applied = 0;
       transformedCards.forEach((card) => {
-        if (cachedImagePaths[card.name]) {
+        if (!card.imagePath && cachedImagePaths[card.name]) {
           card.imagePath = cachedImagePaths[card.name];
+          applied++;
         }
       });
-      console.log(
-        `Applied ${Object.keys(cachedImagePaths).length} cached image paths`
-      );
+      console.log(`Applied ${applied} cached image paths (JSON paths take priority)`);
     }
 
     // Save the cards to cache for future use (only if they have image paths)
