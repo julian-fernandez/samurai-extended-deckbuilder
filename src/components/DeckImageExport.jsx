@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { findCardImage } from "../services/imageService";
 import jsPDF from "jspdf";
 
 const DeckImageExport = ({ deck, onClose }) => {
@@ -96,7 +97,7 @@ const DeckImageExport = ({ deck, onClose }) => {
           const y = MARGIN_Y + row * CARD_HEIGHT_MM;
 
           try {
-            const imagePath = card.imagePath || null;
+            const imagePath = findCardImage(card);
             if (imagePath) {
               const base64Image = await loadImageAsBase64(imagePath);
               pdf.addImage(
