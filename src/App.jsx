@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { MainLayout, Header } from "./components/layout";
 import { CardSearch, DeckBuilder } from "./components/features";
 import { useCards } from "./hooks/useCards";
@@ -9,12 +9,14 @@ import { usePagination } from "./hooks/usePagination";
 import { useScrollToTop } from "./hooks/useScrollToTop";
 import { useCardPreview } from "./hooks/useCardPreview";
 import { clearImageCache } from "./services/imageService";
+import { deserializeDeck } from "./hooks/useSavedDecks";
 import SharedDeck from "./pages/SharedDeck.jsx";
 import DeckPage from "./pages/DeckPage.jsx";
 import "./App.css";
 
 function AppMain() {
   const navigate = useNavigate();
+  const location = useLocation();
   // Custom hooks
   const { cards, filteredCards, loading, uniqueValues, filterCardsData } =
     useCards();
@@ -70,6 +72,17 @@ function AppMain() {
     }, searchTerm ? 200 : 0); // instant clear, debounced search
     return () => clearTimeout(timer);
   }, [cards, searchTerm, filters, filterCardsData]);
+
+  // Pre-load a deck passed via router state (e.g. from the shared deck view)
+  useEffect(() => {
+    if (loading || cards.length === 0) return;
+    const { importDeck } = location.state ?? {};
+    if (!importDeck) return;
+    setDeck(deserializeDeck(importDeck, cards));
+    setShowDeck(true);
+    // Clear state so a back-navigation doesn't re-import
+    navigate(location.pathname, { replace: true, state: {} });
+  }, [loading, cards.length]);
 
   // Switch to search view when filters change in deck view (but not when user manually switches to deck)
   useEffect(() => {

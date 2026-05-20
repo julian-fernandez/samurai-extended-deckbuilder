@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useSavedDecks, deserializeDeck } from "../hooks/useSavedDecks";
 import { loadCards } from "../services/cardService";
 import { getDeckByType, getDeckCount } from "../services/deckService";
@@ -62,6 +62,7 @@ function CardPreview({ card }) {
 export default function SharedDeck() {
   const { token } = useParams();
   const { getDeckByToken } = useSavedDecks();
+  const navigate = useNavigate();
   const [deckMeta, setDeckMeta] = useState(null);
   const [deck, setDeck] = useState([]);
   const [deckByTypeData, setDeckByTypeData] = useState(null);
@@ -150,12 +151,19 @@ export default function SharedDeck() {
                 {total} cards{createdAt ? ` · ${createdAt}` : ""}
               </p>
             </div>
-            <Link
-              to="/"
-              className="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 shadow-sm transition-colors"
+            <button
+              onClick={() =>
+                navigate("/", {
+                  state: {
+                    importDeck: deck.map((c) => ({ cardId: c.id, quantity: c.quantity ?? 1 })),
+                    importDeckName: deckMeta.name,
+                  },
+                })
+              }
+              className="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 shadow-sm transition-colors"
             >
-              Open builder ↗
-            </Link>
+              Open in builder ↗
+            </button>
           </div>
         </div>
 
