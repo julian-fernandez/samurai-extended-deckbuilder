@@ -11,7 +11,7 @@ const SECTION_STYLE = {
 };
 
 // ─── Single card row ──────────────────────────────────────────────────────────
-function CardRow({ card, count, onAdd, onRemove, isHovered, onHover, onLeave }) {
+function CardRow({ card, count, onAdd, onRemove, isHovered, onHover, onLeave, readOnly }) {
   return (
     <div
       className={`group flex items-center gap-1.5 px-2 py-1 rounded cursor-pointer transition-colors ${
@@ -46,23 +46,25 @@ function CardRow({ card, count, onAdd, onRemove, isHovered, onHover, onLeave }) 
           {card.clan}
         </span>
       )}
-      <div className="flex items-center gap-px opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-        <button
-          onClick={(e) => { e.stopPropagation(); onRemove(card.id); }}
-          disabled={count === 0}
-          className="w-4 h-4 flex items-center justify-center rounded text-slate-300 hover:text-red-500 hover:bg-red-50 disabled:cursor-not-allowed transition-colors text-sm leading-none"
-        >−</button>
-        <button
-          onClick={(e) => { e.stopPropagation(); onAdd(card); }}
-          className="w-4 h-4 flex items-center justify-center rounded text-slate-300 hover:text-emerald-600 hover:bg-emerald-50 transition-colors text-sm leading-none"
-        >+</button>
-      </div>
+      {!readOnly && (
+        <div className="flex items-center gap-px opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+          <button
+            onClick={(e) => { e.stopPropagation(); onRemove(card.id); }}
+            disabled={count === 0}
+            className="w-4 h-4 flex items-center justify-center rounded text-slate-300 hover:text-red-500 hover:bg-red-50 disabled:cursor-not-allowed transition-colors text-sm leading-none"
+          >−</button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onAdd(card); }}
+            className="w-4 h-4 flex items-center justify-center rounded text-slate-300 hover:text-emerald-600 hover:bg-emerald-50 transition-colors text-sm leading-none"
+          >+</button>
+        </div>
+      )}
     </div>
   );
 }
 
 // ─── Sub-type group within a deck column ─────────────────────────────────────
-function TypeGroup({ type, cards, deck, getDeckCount, handleAddToDeck, handleRemoveFromDeck, deckSearchTerm, hoveredCardId, onHover, onLeave }) {
+function TypeGroup({ type, cards, deck, getDeckCount, handleAddToDeck, handleRemoveFromDeck, deckSearchTerm, hoveredCardId, onHover, onLeave, readOnly }) {
   const filtered = deckSearchTerm
     ? cards.filter((c) => c.name.toLowerCase().includes(deckSearchTerm.toLowerCase()))
     : cards.filter((c) => getDeckCount(deck, c.id) > 0);
@@ -87,6 +89,7 @@ function TypeGroup({ type, cards, deck, getDeckCount, handleAddToDeck, handleRem
           isHovered={hoveredCardId === card.id}
           onHover={onHover}
           onLeave={onLeave}
+          readOnly={readOnly}
         />
       ))}
     </div>
@@ -111,7 +114,7 @@ function ColumnHeader({ title, count, min, style }) {
 }
 
 // ─── Top strip: Stronghold, Sensei, Pregame (compact horizontal) ──────────────
-function TopStrip({ deckByType, deck, getDeckCount, handleAddToDeck, handleRemoveFromDeck, deckSearchTerm, hoveredCardId, onHover, onLeave }) {
+function TopStrip({ deckByType, deck, getDeckCount, handleAddToDeck, handleRemoveFromDeck, deckSearchTerm, hoveredCardId, onHover, onLeave, readOnly }) {
   const sections = [
     { key: "Stronghold", label: "Stronghold", cards: deckByType.Stronghold ?? [] },
     { key: "Sensei", label: "Sensei", cards: deckByType.Sensei ?? [] },
@@ -147,6 +150,7 @@ function TopStrip({ deckByType, deck, getDeckCount, handleAddToDeck, handleRemov
                   isHovered={hoveredCardId === card.id}
                   onHover={onHover}
                   onLeave={onLeave}
+                  readOnly={readOnly}
                 />
               ))}
             </div>
@@ -158,7 +162,7 @@ function TopStrip({ deckByType, deck, getDeckCount, handleAddToDeck, handleRemov
 }
 
 // ─── Dynasty column ───────────────────────────────────────────────────────────
-function DynastyColumn({ deckByType, deck, getDeckCount, handleAddToDeck, handleRemoveFromDeck, deckSearchTerm, hoveredCardId, onHover, onLeave }) {
+function DynastyColumn({ deckByType, deck, getDeckCount, handleAddToDeck, handleRemoveFromDeck, deckSearchTerm, hoveredCardId, onHover, onLeave, readOnly }) {
   const total = Object.values(deckByType.Dynasty).reduce(
     (s, cards) => s + cards.reduce((cs, c) => cs + getDeckCount(deck, c.id), 0), 0
   );
@@ -191,6 +195,7 @@ function DynastyColumn({ deckByType, deck, getDeckCount, handleAddToDeck, handle
             hoveredCardId={hoveredCardId}
             onHover={onHover}
             onLeave={onLeave}
+            readOnly={readOnly}
           />
         ))}
       </div>
@@ -199,7 +204,7 @@ function DynastyColumn({ deckByType, deck, getDeckCount, handleAddToDeck, handle
 }
 
 // ─── Fate column ──────────────────────────────────────────────────────────────
-function FateColumn({ deckByType, deck, getDeckCount, handleAddToDeck, handleRemoveFromDeck, deckSearchTerm, hoveredCardId, onHover, onLeave }) {
+function FateColumn({ deckByType, deck, getDeckCount, handleAddToDeck, handleRemoveFromDeck, deckSearchTerm, hoveredCardId, onHover, onLeave, readOnly }) {
   const total = Object.values(deckByType.Fate).reduce(
     (s, cards) => s + cards.reduce((cs, c) => cs + getDeckCount(deck, c.id), 0), 0
   );
@@ -232,6 +237,7 @@ function FateColumn({ deckByType, deck, getDeckCount, handleAddToDeck, handleRem
             hoveredCardId={hoveredCardId}
             onHover={onHover}
             onLeave={onLeave}
+            readOnly={readOnly}
           />
         ))}
       </div>
@@ -247,6 +253,7 @@ export default function ModernDeckView({
   handleAddToDeck,
   handleRemoveFromDeck,
   onCardHover,
+  readOnly = false,
 }) {
   const [hoveredCardId, setHoveredCardId] = useState(null);
   const [deckSearchTerm, setDeckSearchTerm] = useState("");
@@ -256,7 +263,7 @@ export default function ModernDeckView({
 
   const sharedProps = {
     deck, getDeckCount, handleAddToDeck, handleRemoveFromDeck,
-    deckSearchTerm, hoveredCardId, onHover, onLeave,
+    deckSearchTerm, hoveredCardId, onHover, onLeave, readOnly,
   };
 
   const deckIsEmpty = deck.length === 0;
