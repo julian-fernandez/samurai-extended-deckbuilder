@@ -82,7 +82,7 @@ function AppMain() {
     setShowDeck(true);
     // Clear state so a back-navigation doesn't re-import
     navigate(location.pathname, { replace: true, state: {} });
-  }, [loading, cards.length]);
+  }, [loading, cards.length, location]);
 
   // Switch to search view when filters change in deck view (but not when user manually switches to deck)
   useEffect(() => {
