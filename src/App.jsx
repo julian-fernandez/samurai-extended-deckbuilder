@@ -10,6 +10,7 @@ import { useScrollToTop } from "./hooks/useScrollToTop";
 import { useCardPreview } from "./hooks/useCardPreview";
 import { clearImageCache } from "./services/imageService";
 import { deserializeDeck } from "./hooks/useSavedDecks";
+import MobileNav from "./components/MobileNav.jsx";
 import SharedDeck from "./pages/SharedDeck.jsx";
 import DeckPage from "./pages/DeckPage.jsx";
 import "./App.css";
@@ -138,6 +139,17 @@ function AppMain() {
     onCollapseToggle: () => setSidebarCollapsed(!sidebarCollapsed),
   };
 
+  // Mobile tab: "search" | "deck" | "filters"
+  const mobileTab = showDeck ? "deck" : "search";
+  const handleMobileTab = (tab) => {
+    if (tab === "filters") {
+      setSidebarOpen(true);
+    } else {
+      setSidebarOpen(false);
+      setShowDeck(tab === "deck");
+    }
+  };
+
   // Render loading state
   if (loading) {
     return (
@@ -164,6 +176,11 @@ function AppMain() {
       showScrollToTop={showScrollToTop}
       onScrollToTop={scrollToTop}
     >
+      <MobileNav
+        activeTab={sidebarOpen ? "filters" : mobileTab}
+        onTabChange={handleMobileTab}
+        deckCount={deckStats.total}
+      />
       <Header
         deckStats={deckStats}
         showDeck={showDeck}
