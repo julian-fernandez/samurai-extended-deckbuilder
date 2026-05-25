@@ -158,7 +158,7 @@ export const filterCards = (cards, filters) => {
 
   // Keyword filter
   if (filters.keywords && filters.keywords.length > 0) {
-    filteredCards = filterByKeywords(filteredCards, filters.keywords);
+    filteredCards = filterByKeywords(filteredCards, filters.keywords, filters.keywordsMode || "any");
   }
 
   // Numerical range filters
@@ -198,6 +198,15 @@ export const filterCards = (cards, filters) => {
     );
   }
 
+  if (filters.honorMin !== undefined || filters.honorMax !== undefined) {
+    filteredCards = filterByRange(
+      filteredCards,
+      "honorRequirement",
+      filters.honorMin,
+      filters.honorMax
+    );
+  }
+
   return filteredCards;
 };
 
@@ -206,11 +215,27 @@ export const filterCards = (cards, filters) => {
  * @param {Array} cards - Array of cards
  * @returns {Object} Unique values for each field
  */
+const getMaxForField = (cards, field) => {
+  let max = 0;
+  for (const card of cards) {
+    const val = parseInt(card[field]);
+    if (!isNaN(val) && val > max) max = val;
+  }
+  return max;
+};
+
 export const getUniqueValues = (cards) => {
   return {
     clans: getUniqueValuesForField(cards, "clan"),
     types: getUniqueValuesForField(cards, "type"),
     keywords: getUniqueKeywords(cards),
+    maxValues: {
+      cost: getMaxForField(cards, "cost"),
+      force: getMaxForField(cards, "force"),
+      chi: getMaxForField(cards, "chi"),
+      focus: getMaxForField(cards, "focus"),
+      honor: getMaxForField(cards, "honorRequirement"),
+    },
   };
 };
 

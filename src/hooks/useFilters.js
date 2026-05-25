@@ -13,7 +13,10 @@ export const useFilters = () => {
     chiMax: "",
     focusMin: "",
     focusMax: "",
+    honorMin: "",
+    honorMax: "",
     keywords: [],
+    keywordsMode: "any",
   });
 
   // Keyword management functions

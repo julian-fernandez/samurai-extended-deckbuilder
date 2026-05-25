@@ -13,6 +13,7 @@ export const useCards = () => {
     clans: [],
     types: [],
     keywords: [],
+    maxValues: { cost: 20, force: 12, chi: 12, focus: 6, honor: 12 },
   });
 
   // Load cards on mount

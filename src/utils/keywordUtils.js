@@ -99,14 +99,18 @@ export const getUniqueKeywords = (cards) => {
  * @param {Array} selectedKeywords - Array of selected keywords
  * @returns {Array} Filtered cards
  */
-export const filterByKeywords = (cards, selectedKeywords) => {
+// mode: "any" (default) = card has at least one selected keyword
+//       "all"           = card has every selected keyword
+export const filterByKeywords = (cards, selectedKeywords, mode = "any") => {
   if (!selectedKeywords || selectedKeywords.length === 0) {
     return cards;
   }
 
   return cards.filter((card) => {
-    // Use the already-extracted keywords from the card object
     const cardKeywords = card.keywords || [];
-    return selectedKeywords.some((keyword) => cardKeywords.includes(keyword));
+    if (mode === "all") {
+      return selectedKeywords.every((kw) => cardKeywords.includes(kw));
+    }
+    return selectedKeywords.some((kw) => cardKeywords.includes(kw));
   });
 };
