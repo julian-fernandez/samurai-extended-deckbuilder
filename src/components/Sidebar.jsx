@@ -2,58 +2,75 @@ import { useState } from "react";
 import { Select } from "./ui";
 import KeywordSearch from "./KeywordSearch";
 
-// ─── Dual range slider ────────────────────────────────────────────────────────
-// Shows two thumbs (min / max) with a filled track between them.
-// When min = 0 the minFilter is cleared; when max = ceiling the maxFilter is cleared.
+// ─── Dual-thumb range slider ──────────────────────────────────────────────────
+// Two overlapping <input type="range"> elements share a track.
+// pointer-events are disabled on the track and enabled only on each thumb.
+const DUAL_THUMB_CSS = `
+  .dual-thumb {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    background: transparent; appearance: none; -webkit-appearance: none;
+    pointer-events: none; margin: 0;
+  }
+  .dual-thumb::-webkit-slider-runnable-track { background: transparent; }
+  .dual-thumb::-webkit-slider-thumb {
+    pointer-events: all; -webkit-appearance: none;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #4f46e5; border: 2px solid #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.25); cursor: pointer;
+    margin-top: -6px;
+  }
+  .dual-thumb::-moz-range-track { background: transparent; }
+  .dual-thumb::-moz-range-thumb {
+    pointer-events: all; width: 14px; height: 14px; border-radius: 50%;
+    background: #4f46e5; border: 2px solid #fff; cursor: pointer;
+  }
+`;
+
 function RangeFilter({ label, minKey, maxKey, ceiling, minVal, maxVal, onChange }) {
   const lo = minVal !== "" ? Number(minVal) : 0;
   const hi = maxVal !== "" ? Number(maxVal) : ceiling;
-
-  const setMin = (raw) => {
-    const v = Math.min(Number(raw), hi);
-    onChange(minKey, v === 0 ? "" : String(v));
-  };
-  const setMax = (raw) => {
-    const v = Math.max(Number(raw), lo);
-    onChange(maxKey, v === ceiling ? "" : String(v));
-  };
-
+  const loPercent = ceiling > 0 ? (lo / ceiling) * 100 : 0;
+  const hiPercent = ceiling > 0 ? (hi / ceiling) * 100 : 100;
   const isActive = lo > 0 || hi < ceiling;
+
+  const setLo = (v) => {
+    const clamped = Math.min(Number(v), hi);
+    onChange(minKey, clamped === 0 ? "" : String(clamped));
+  };
+  const setHi = (v) => {
+    const clamped = Math.max(Number(v), lo);
+    onChange(maxKey, clamped === ceiling ? "" : String(clamped));
+  };
 
   return (
     <div>
-      <div className="flex items-baseline justify-between mb-2">
+      <div className="flex items-baseline justify-between mb-3">
         <span className={`text-sm font-medium ${isActive ? "text-indigo-700" : "text-gray-700"}`}>
           {label}
         </span>
-        <span className="text-xs font-mono text-slate-500">
-          {lo} – {hi}
-        </span>
+        <span className="text-xs font-mono text-slate-500">{lo} – {hi}</span>
       </div>
 
-      {/* Min slider */}
-      <div className="flex items-center gap-2 mb-1">
-        <span className="text-[10px] text-slate-400 w-5">min</span>
-        <input
-          type="range"
-          min={0}
-          max={ceiling}
-          value={lo}
-          onChange={(e) => setMin(e.target.value)}
-          className="flex-1 h-1.5 accent-indigo-600 cursor-pointer"
+      {/* Slider track + two thumbs */}
+      <div className="relative mx-1" style={{ height: 20 }}>
+        {/* Base track */}
+        <div className="absolute top-1/2 -translate-y-1/2 w-full h-1.5 bg-slate-200 rounded" />
+        {/* Filled section */}
+        <div
+          className="absolute top-1/2 -translate-y-1/2 h-1.5 bg-indigo-500 rounded"
+          style={{ left: `${loPercent}%`, right: `${100 - hiPercent}%` }}
         />
-      </div>
-
-      {/* Max slider */}
-      <div className="flex items-center gap-2">
-        <span className="text-[10px] text-slate-400 w-5">max</span>
-        <input
-          type="range"
-          min={0}
-          max={ceiling}
-          value={hi}
-          onChange={(e) => setMax(e.target.value)}
-          className="flex-1 h-1.5 accent-indigo-600 cursor-pointer"
+        {/* Min thumb — higher z when near the top to stay draggable */}
+        <input type="range" min={0} max={ceiling} value={lo}
+          onChange={(e) => setLo(e.target.value)}
+          className="dual-thumb"
+          style={{ zIndex: lo >= hi ? 5 : 3 }}
+        />
+        {/* Max thumb */}
+        <input type="range" min={0} max={ceiling} value={hi}
+          onChange={(e) => setHi(e.target.value)}
+          className="dual-thumb"
+          style={{ zIndex: 4 }}
         />
       </div>
     </div>
@@ -77,6 +94,7 @@ function FilterForm({ searchTerm, setSearchTerm, filters, setFilters, addKeyword
 
   return (
     <div className="p-4 space-y-5">
+      <style>{DUAL_THUMB_CSS}</style>
       {/* Text search */}
       <div>
         <input

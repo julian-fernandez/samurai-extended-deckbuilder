@@ -72,10 +72,6 @@ const KeywordSearch = ({
 
   return (
     <div className="relative">
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        Keywords
-      </label>
-
       {/* Input field */}
       <input
         ref={inputRef}
