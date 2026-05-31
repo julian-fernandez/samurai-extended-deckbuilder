@@ -5,13 +5,46 @@ import { L5R_KEYWORDS } from "../constants/index.js";
  * @param {Object} card - Card object from JSON
  * @returns {Array} Array of extracted keywords
  */
+/**
+ * Parse a raw keyword line (may contain HTML tags and &#8226; entities) into
+ * individual keyword tokens that are present in the L5R_KEYWORDS whitelist.
+ *
+ * Handles compound tokens like "Ratling Creature" (a single bullet segment that
+ * is itself not a keyword) by also checking each space-separated word inside it,
+ * so both "Ratling" and "Creature" are still extracted.
+ */
+const parseKeywordLine = (raw) => {
+  const found = [];
+
+  raw
+    .replace(/&#8226;/g, "\u2022")
+    .replace(/<[^>]*>/g, "")
+    .split(/[•·\u2022]/)
+    .map((k) => k.trim())
+    .filter((k) => k && !k.endsWith(":"))
+    .forEach((token) => {
+      if (L5R_KEYWORDS.includes(token)) {
+        if (!found.includes(token)) found.push(token);
+      } else {
+        // Compound token (e.g. "Ratling Creature"): check each word individually
+        token
+          .split(/\s+/)
+          .filter((word) => L5R_KEYWORDS.includes(word))
+          .forEach((word) => {
+            if (!found.includes(word)) found.push(word);
+          });
+      }
+    });
+
+  return found;
+};
+
 export const extractKeywords = (card) => {
   const keywords = [];
 
-  // Extract from dedicated keywords field if available
+  // Start with the dedicated keywords array (may be incomplete in the data).
   if (card.keywords && Array.isArray(card.keywords)) {
     card.keywords.forEach((keyword) => {
-      // Remove HTML tags and clean up
       const cleanKeyword = keyword.replace(/<[^>]*>/g, "").trim();
       if (cleanKeyword && !keywords.includes(cleanKeyword)) {
         keywords.push(cleanKeyword);
@@ -19,41 +52,21 @@ export const extractKeywords = (card) => {
     });
   }
 
-  // Extract from text field if no dedicated keywords
-  if (keywords.length === 0 && card.text && Array.isArray(card.text)) {
-    const text = card.text.join(" ");
+  // The top-level `text` field has the keyword line already stripped out.
+  // The full original text (with the keyword block) is preserved in each
+  // printing's `text` field, e.g.:
+  //   "<b>Nonhuman &#8226; Ratling &#8226; One Tribe &#8226; Scavenger</b> <br>…"
+  // Parse it to pick up any keywords missing from the dedicated array.
+  const printingTexts = card.printing
+    ?.map((p) => p.text?.[0])
+    .filter(Boolean) ?? [];
 
-    // Look for bullet-separated keywords at the start
-    const bulletMatch = text.match(/^([^<]+?)(?=<br|<BR|\n)/);
-    if (bulletMatch) {
-      const keywordLine = bulletMatch[1];
-      const bulletKeywords = keywordLine
-        .split(/[•·\u2022]/)
-        .map((k) => k.trim())
-        .filter((k) => k);
-
-      bulletKeywords.forEach((keyword) => {
-        if (L5R_KEYWORDS.includes(keyword) && !keywords.includes(keyword)) {
-          keywords.push(keyword);
-        }
-      });
-    }
-
-    // Look for standalone bold keywords (but exclude mechanics like "Reaction:")
-    const boldMatches = text.match(/<b>([^<]+)<\/b>/g);
-    if (boldMatches) {
-      boldMatches.forEach((match) => {
-        const keyword = match.replace(/<[^>]*>/g, "").trim();
-        // Exclude mechanics that end with colon (like "Reaction:", "Battle:", etc.)
-        if (
-          !keyword.endsWith(":") &&
-          L5R_KEYWORDS.includes(keyword) &&
-          !keywords.includes(keyword)
-        ) {
-          keywords.push(keyword);
-        }
-      });
-    }
+  for (const raw of printingTexts) {
+    // Extract everything before the first <br> as the keyword line.
+    const beforeBr = raw.split(/<br\s*\/?>/i)[0];
+    parseKeywordLine(beforeBr).forEach((kw) => {
+      if (!keywords.includes(kw)) keywords.push(kw);
+    });
   }
 
   return keywords;
