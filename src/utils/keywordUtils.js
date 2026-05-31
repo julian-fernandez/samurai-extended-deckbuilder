@@ -1,19 +1,25 @@
 import { L5R_KEYWORDS } from "../constants/index.js";
 
 /**
- * Extract keywords from card data
- * @param {Object} card - Card object from JSON
- * @returns {Array} Array of extracted keywords
+ * Return true only if a text segment looks like a keyword block, i.e. it
+ * contains bullet separators (&#8226; / •) or begins with a <b>…</b> tag.
+ * Plain rules sentences ("After your next Events Phase begins…") are rejected
+ * so their words are never mistaken for keywords.
  */
+const isKeywordBlock = (raw) => {
+  const norm = raw.replace(/&#8226;/g, "\u2022");
+  return norm.includes("\u2022") || /^<b>[^<]+<\/b>/.test(norm.trimStart());
+};
+
 /**
- * Parse a raw keyword line (may contain HTML tags and &#8226; entities) into
- * individual keyword tokens that are present in the L5R_KEYWORDS whitelist.
+ * Parse a keyword block into individual keyword tokens present in L5R_KEYWORDS.
  *
- * Handles compound tokens like "Ratling Creature" (a single bullet segment that
- * is itself not a keyword) by also checking each space-separated word inside it,
- * so both "Ratling" and "Creature" are still extracted.
+ * Compound bullet segments like "Ratling Creature" (where the whole token is
+ * not itself a keyword) are split word-by-word so "Ratling" and "Creature" are
+ * each captured. This is safe here because the caller already verified the
+ * segment is a keyword block, not a rules sentence.
  */
-const parseKeywordLine = (raw) => {
+const parseKeywordBlock = (raw) => {
   const found = [];
 
   raw
@@ -26,7 +32,6 @@ const parseKeywordLine = (raw) => {
       if (L5R_KEYWORDS.includes(token)) {
         if (!found.includes(token)) found.push(token);
       } else {
-        // Compound token (e.g. "Ratling Creature"): check each word individually
         token
           .split(/\s+/)
           .filter((word) => L5R_KEYWORDS.includes(word))
@@ -39,6 +44,11 @@ const parseKeywordLine = (raw) => {
   return found;
 };
 
+/**
+ * Extract keywords from card data.
+ * @param {Object} card - Card object from JSON
+ * @returns {Array} Array of extracted keywords
+ */
 export const extractKeywords = (card) => {
   const keywords = [];
 
@@ -62,9 +72,9 @@ export const extractKeywords = (card) => {
     .filter(Boolean) ?? [];
 
   for (const raw of printingTexts) {
-    // Extract everything before the first <br> as the keyword line.
     const beforeBr = raw.split(/<br\s*\/?>/i)[0];
-    parseKeywordLine(beforeBr).forEach((kw) => {
+    if (!isKeywordBlock(beforeBr)) continue;
+    parseKeywordBlock(beforeBr).forEach((kw) => {
       if (!keywords.includes(kw)) keywords.push(kw);
     });
   }
