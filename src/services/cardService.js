@@ -1,4 +1,10 @@
 import { BANNED_CARD_NAMES } from "../constants/index.js";
+
+// Build a lowercased set once so `isBanned` lookups are case-insensitive
+const BANNED_CARD_NAMES_LOWER = new Set(
+  [...BANNED_CARD_NAMES].map((n) => n.toLowerCase())
+);
+
 import {
   extractKeywords,
   cleanTextFromKeywords,
@@ -10,7 +16,7 @@ import {
   filterByType,
   filterByRange,
 } from "../utils/filterUtils.js";
-import { saveCardsWithImagePaths, loadImagePaths } from "./imageService.js";
+import { saveCardsWithImagePaths, loadImagePaths } from "./imageCacheService.js";
 
 /**
  * Determine if a raw card from JSON is banned in Samurai Extended.
@@ -20,7 +26,7 @@ const isBanned = (rawCard) => {
   const name = rawCard.puretexttitle || rawCard.title?.[0] || "";
   const type = (rawCard.type?.[0] || "").toLowerCase();
   if (type === "ancestor") return true;
-  return BANNED_CARD_NAMES.has(name);
+  return BANNED_CARD_NAMES_LOWER.has(name.toLowerCase());
 };
 
 /**

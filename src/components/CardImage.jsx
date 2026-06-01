@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 
 /**
- * Simple image component with fallback support
+ * Card image component with lazy loading and fallback support.
  */
-export default function LazyImage({
+export default function CardImage({
   src,
   alt,
   className = "",
@@ -39,6 +39,7 @@ export default function LazyImage({
     <img
       src={src}
       alt={alt}
+      loading="lazy"
       className={className}
       onLoad={handleLoad}
       onError={handleError}

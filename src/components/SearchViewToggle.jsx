@@ -31,10 +31,7 @@ const SearchViewToggle = ({
             📄 Text
           </button>
           <button
-            onClick={() => {
-              console.log("Switching to image view mode");
-              setViewMode("image");
-            }}
+            onClick={() => setViewMode("image")}
             className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
               viewMode === "image"
                 ? "bg-white text-gray-900 shadow-sm"

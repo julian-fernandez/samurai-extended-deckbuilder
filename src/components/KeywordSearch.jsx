@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from "react";
-import { L5R_KEYWORDS } from "../constants";
 
 const KeywordSearch = ({
   availableKeywords,
@@ -16,8 +15,7 @@ const KeywordSearch = ({
   // Filter keywords based on input
   useEffect(() => {
     if (inputValue.trim()) {
-      // Filter from the actual L5R_KEYWORDS list instead of availableKeywords
-      const filtered = L5R_KEYWORDS.filter(
+      const filtered = (availableKeywords || []).filter(
         (keyword) =>
           keyword.toLowerCase().includes(inputValue.toLowerCase()) &&
           !selectedKeywords.includes(keyword)

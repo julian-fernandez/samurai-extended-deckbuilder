@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import LazyImage from "./LazyImage";
+import CardImage from "./CardImage";
 import { findCardImage } from "../services/imageService";
 
 const Card = ({
@@ -205,7 +205,7 @@ const Card = ({
       {/* Image View */}
       {effectiveViewMode === "image" && imagePath && (
         <div className="p-4">
-          <LazyImage
+          <CardImage
             src={imagePath}
             alt={card.name}
             className="w-full h-auto rounded-lg shadow-md"

@@ -1,0 +1,127 @@
+import { useState, useEffect, useRef } from "react";
+import { useCards } from "./useCards";
+import { useDeck } from "./useDeck";
+import { useFilters } from "./useFilters";
+import { usePagination } from "./usePagination";
+import { useScrollToTop } from "./useScrollToTop";
+import { useCardPreview } from "./useCardPreview";
+
+/**
+ * Composes all hooks and state shared between the main App route and DeckPage.
+ *
+ * @param {{ initialShowDeck?: boolean }} options
+ *   initialShowDeck – whether the deck panel starts open (default false).
+ */
+export function useCardSearchPage({ initialShowDeck = false } = {}) {
+  const { cards, filteredCards, loading, uniqueValues, filterCardsData } = useCards();
+  const deckApi = useDeck(cards);
+  const { searchTerm, setSearchTerm, filters, setFilters, addKeyword, removeKeyword } = useFilters();
+  const { currentPage, totalPages, currentCards, handlePageChange } = usePagination(filteredCards);
+  const { showScrollToTop, scrollToTop } = useScrollToTop();
+  const { hoveredCard, handleCardHover } = useCardPreview();
+
+  const [showDeck, setShowDeck] = useState(initialShowDeck);
+  const [viewMode, setViewMode] = useState("image");
+  const [reloadTick, setReloadTick] = useState(0);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  const prevFiltersRef = useRef({ searchTerm: "", filters: {} });
+  const userSwitchedToDeckRef = useRef(false);
+
+  // Debounce search term to avoid filtering 6000+ cards on every keystroke;
+  // clear instantly so removing a search term feels responsive.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      filterCardsData(searchTerm, filters);
+    }, searchTerm ? 200 : 0);
+    return () => clearTimeout(timer);
+  }, [cards, searchTerm, filters, filterCardsData]);
+
+  // Switch back to search view when the user changes filters while deck is shown,
+  // unless they explicitly switched to the deck view themselves.
+  useEffect(() => {
+    if (showDeck && !userSwitchedToDeckRef.current) {
+      const filtersChanged =
+        searchTerm !== prevFiltersRef.current.searchTerm ||
+        JSON.stringify(filters) !== JSON.stringify(prevFiltersRef.current.filters);
+      const hasActiveFilter =
+        searchTerm ||
+        Object.values(filters).some((v) => (Array.isArray(v) ? v.length > 0 : v !== ""));
+
+      if (filtersChanged && hasActiveFilter) {
+        setShowDeck(false);
+      }
+    }
+    prevFiltersRef.current = { searchTerm, filters };
+  }, [searchTerm, filters, showDeck]);
+
+  // Reset the manual-switch flag whenever filters change so the auto-switch
+  // logic can take over again on the next filter interaction.
+  useEffect(() => {
+    if (userSwitchedToDeckRef.current) {
+      userSwitchedToDeckRef.current = false;
+    }
+  }, [searchTerm, filters]);
+
+  const handleToggleDeckView = () => {
+    userSwitchedToDeckRef.current = !showDeck;
+    setShowDeck((prev) => !prev);
+  };
+
+  const sidebarProps = {
+    searchTerm,
+    setSearchTerm,
+    filters,
+    setFilters,
+    addKeyword,
+    removeKeyword,
+    uniqueValues,
+    isOpen: sidebarOpen,
+    onToggle: () => setSidebarOpen((prev) => !prev),
+    isCollapsed: sidebarCollapsed,
+    onCollapseToggle: () => setSidebarCollapsed((prev) => !prev),
+  };
+
+  return {
+    // cards
+    cards,
+    filteredCards,
+    loading,
+    uniqueValues,
+    // deck
+    ...deckApi,
+    // filters
+    searchTerm,
+    setSearchTerm,
+    filters,
+    setFilters,
+    addKeyword,
+    removeKeyword,
+    // pagination
+    currentPage,
+    totalPages,
+    currentCards,
+    handlePageChange,
+    // scroll
+    showScrollToTop,
+    scrollToTop,
+    // card preview
+    hoveredCard,
+    handleCardHover,
+    // ui state
+    showDeck,
+    setShowDeck,
+    viewMode,
+    setViewMode,
+    reloadTick,
+    setReloadTick,
+    sidebarOpen,
+    setSidebarOpen,
+    sidebarCollapsed,
+    setSidebarCollapsed,
+    // computed
+    sidebarProps,
+    handleToggleDeckView,
+  };
+}

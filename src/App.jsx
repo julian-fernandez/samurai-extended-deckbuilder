@@ -1,14 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { MainLayout, Header } from "./components/layout";
 import { CardSearch, DeckBuilder } from "./components/features";
-import { useCards } from "./hooks/useCards";
-import { useDeck } from "./hooks/useDeck";
-import { useFilters } from "./hooks/useFilters";
-import { usePagination } from "./hooks/usePagination";
-import { useScrollToTop } from "./hooks/useScrollToTop";
-import { useCardPreview } from "./hooks/useCardPreview";
-import { clearImageCache } from "./services/imageService";
+import { useCardSearchPage } from "./hooks/useCardSearchPage";
+import { clearImageCache } from "./services/imageCacheService";
 import { deserializeDeck } from "./hooks/useSavedDecks";
 import MobileNav from "./components/MobileNav.jsx";
 import SharedDeck from "./pages/SharedDeck.jsx";
@@ -17,10 +12,11 @@ import DeckPage from "./pages/DeckPage.jsx";
 function AppMain() {
   const navigate = useNavigate();
   const location = useLocation();
-  // Custom hooks
-  const { cards, filteredCards, loading, uniqueValues, filterCardsData } =
-    useCards();
+
   const {
+    cards,
+    filteredCards,
+    loading,
     deck,
     setDeck,
     showImport,
@@ -38,40 +34,28 @@ function AppMain() {
     deckValidation,
     deckByType,
     getDeckCount,
-  } = useDeck(cards);
-  const {
-    searchTerm,
-    setSearchTerm,
-    filters,
-    setFilters,
-    addKeyword,
-    removeKeyword,
-  } = useFilters();
-  const { currentPage, totalPages, currentCards, handlePageChange } =
-    usePagination(filteredCards);
-  const { showScrollToTop, scrollToTop } = useScrollToTop();
-  const { hoveredCard, handleCardHover } = useCardPreview();
+    currentPage,
+    totalPages,
+    currentCards,
+    handlePageChange,
+    showScrollToTop,
+    scrollToTop,
+    hoveredCard,
+    handleCardHover,
+    showDeck,
+    setShowDeck,
+    viewMode,
+    setViewMode,
+    reloadTick,
+    setReloadTick,
+    sidebarOpen,
+    setSidebarOpen,
+    sidebarProps,
+    handleToggleDeckView,
+  } = useCardSearchPage({ initialShowDeck: false });
 
-  // Local state
-  const [showDeck, setShowDeck] = useState(false);
+  // App-specific state not shared with DeckPage
   const [deckImageViewMode, setDeckImageViewMode] = useState("image");
-  const [viewMode, setViewMode] = useState("image");
-  const [reloadTick, setReloadTick] = useState(0);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-
-  // Refs for tracking user interactions
-  const prevFiltersRef = useRef({ searchTerm: "", filters: {} });
-  const userSwitchedToDeckRef = useRef(false);
-
-  // Filter cards when dependencies change — debounce search term to avoid
-  // filtering 6000+ cards on every keystroke
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      filterCardsData(searchTerm, filters);
-    }, searchTerm ? 200 : 0); // instant clear, debounced search
-    return () => clearTimeout(timer);
-  }, [cards, searchTerm, filters, filterCardsData]);
 
   // Pre-load a deck passed via router state (e.g. from the shared deck view)
   useEffect(() => {
@@ -84,60 +68,6 @@ function AppMain() {
     navigate(location.pathname, { replace: true, state: {} });
   }, [loading, cards.length, location]);
 
-  // Switch to search view when filters change in deck view (but not when user manually switches to deck)
-  useEffect(() => {
-    if (showDeck && !userSwitchedToDeckRef.current) {
-      // Check if filters actually changed (not just on initial load)
-      const filtersChanged =
-        searchTerm !== prevFiltersRef.current.searchTerm ||
-        JSON.stringify(filters) !==
-          JSON.stringify(prevFiltersRef.current.filters);
-
-      if (
-        filtersChanged &&
-        (searchTerm ||
-          Object.values(filters).some((value) =>
-            Array.isArray(value) ? value.length > 0 : value !== ""
-          ))
-      ) {
-        setShowDeck(false);
-      }
-    }
-
-    // Update previous filters
-    prevFiltersRef.current = { searchTerm, filters };
-  }, [searchTerm, filters, showDeck]);
-
-  // Reset the user switch flag when filters actually change
-  useEffect(() => {
-    if (userSwitchedToDeckRef.current) {
-      userSwitchedToDeckRef.current = false;
-    }
-  }, [searchTerm, filters]);
-
-  const handleToggleDeckView = () => {
-    if (!showDeck) {
-      userSwitchedToDeckRef.current = true;
-    } else {
-      userSwitchedToDeckRef.current = false;
-    }
-    setShowDeck(!showDeck);
-  };
-
-  const sidebarProps = {
-    searchTerm,
-    setSearchTerm,
-    filters,
-    setFilters,
-    addKeyword,
-    removeKeyword,
-    uniqueValues,
-    isOpen: sidebarOpen,
-    onToggle: () => setSidebarOpen(!sidebarOpen),
-    isCollapsed: sidebarCollapsed,
-    onCollapseToggle: () => setSidebarCollapsed(!sidebarCollapsed),
-  };
-
   // Mobile tab: "search" | "deck" | "filters"
   const mobileTab = showDeck ? "deck" : "search";
   const handleMobileTab = (tab) => {
@@ -149,7 +79,6 @@ function AppMain() {
     }
   };
 
-  // Render loading state
   if (loading) {
     return (
       <Routes>

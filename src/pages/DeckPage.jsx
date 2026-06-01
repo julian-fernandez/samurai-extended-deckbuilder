@@ -1,16 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { MainLayout } from "../components/layout";
 import DeckPageHeader from "../components/deck/DeckPageHeader";
 import { CardSearch } from "../components/features";
 import DeckEditor from "../components/deck/DeckEditor";
-import { useCards } from "../hooks/useCards";
-import { useDeck } from "../hooks/useDeck";
-import { useFilters } from "../hooks/useFilters";
-import { usePagination } from "../hooks/usePagination";
-import { useScrollToTop } from "../hooks/useScrollToTop";
-import { useCardPreview } from "../hooks/useCardPreview";
-import { clearImageCache } from "../services/imageService";
+import { useCardSearchPage } from "../hooks/useCardSearchPage";
+import { clearImageCache } from "../services/imageCacheService";
 import { useSavedDecks, deserializeDeck } from "../hooks/useSavedDecks";
 
 export default function DeckPage() {
@@ -18,39 +13,52 @@ export default function DeckPage() {
   const navigate = useNavigate();
   const { getDeckById } = useSavedDecks();
 
-  const { cards, filteredCards, loading: cardsLoading, uniqueValues, filterCardsData } = useCards();
   const {
-    deck, setDeck,
-    showImport, setShowImport,
-    importText, setImportText,
-    missingCards, setMissingCards,
-    handleAddToDeck, handleRemoveFromDeck, handleClearDeck,
-    handleExportDeck, handleImportDeck,
-    deckStats, deckValidation, deckByType, getDeckCount,
-  } = useDeck(cards);
+    cards,
+    filteredCards,
+    loading,
+    deck,
+    setDeck,
+    showImport,
+    setShowImport,
+    importText,
+    setImportText,
+    missingCards,
+    setMissingCards,
+    handleAddToDeck,
+    handleRemoveFromDeck,
+    handleClearDeck,
+    handleExportDeck,
+    handleImportDeck,
+    deckStats,
+    deckValidation,
+    deckByType,
+    getDeckCount,
+    currentPage,
+    totalPages,
+    currentCards,
+    handlePageChange,
+    showScrollToTop,
+    scrollToTop,
+    hoveredCard,
+    handleCardHover,
+    showDeck,
+    viewMode,
+    setViewMode,
+    reloadTick,
+    setReloadTick,
+    sidebarProps,
+    handleToggleDeckView,
+  } = useCardSearchPage({ initialShowDeck: true });
 
-  const { searchTerm, setSearchTerm, filters, setFilters, addKeyword, removeKeyword } = useFilters();
-  const { currentPage, totalPages, currentCards, handlePageChange } = usePagination(filteredCards);
-  const { showScrollToTop, scrollToTop } = useScrollToTop();
-  const { hoveredCard, handleCardHover } = useCardPreview();
-
-  const [showDeck, setShowDeck] = useState(true);
-  const [deckImageViewMode] = useState("text");
-  const [viewMode, setViewMode] = useState("image");
-  const [reloadTick, setReloadTick] = useState(0);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-
+  // DeckPage-specific state
   const [deckMeta, setDeckMeta] = useState(null);
   const [loadError, setLoadError] = useState(null);
   const [initialLoading, setInitialLoading] = useState(true);
 
-  const prevFiltersRef = useRef({ searchTerm: "", filters: {} });
-  const userSwitchedToDeckRef = useRef(false);
-
   // Load the saved deck once cards are ready
   useEffect(() => {
-    if (cardsLoading || cards.length === 0) return;
+    if (loading || cards.length === 0) return;
     let cancelled = false;
 
     async function load() {
@@ -61,46 +69,20 @@ export default function DeckPage() {
         setInitialLoading(false);
         return;
       }
-      setDeckMeta({ name: data.name, description: data.description, isPublic: data.is_public, shareToken: data.share_token });
+      setDeckMeta({
+        name: data.name,
+        description: data.description,
+        isPublic: data.is_public,
+        shareToken: data.share_token,
+      });
       setDeck(deserializeDeck(data.cards, cards));
       setInitialLoading(false);
     }
     load();
     return () => { cancelled = true; };
-  }, [id, cardsLoading, cards.length]);
+  }, [id, loading, cards.length]);
 
-  useEffect(() => {
-    filterCardsData(searchTerm, filters);
-  }, [cards, searchTerm, filters, filterCardsData]);
-
-  useEffect(() => {
-    if (showDeck && !userSwitchedToDeckRef.current) {
-      const filtersChanged =
-        searchTerm !== prevFiltersRef.current.searchTerm ||
-        JSON.stringify(filters) !== JSON.stringify(prevFiltersRef.current.filters);
-      if (filtersChanged && (searchTerm || Object.values(filters).some((v) => Array.isArray(v) ? v.length > 0 : v !== ""))) {
-        setShowDeck(false);
-      }
-    }
-    prevFiltersRef.current = { searchTerm, filters };
-  }, [searchTerm, filters, showDeck]);
-
-  useEffect(() => {
-    if (userSwitchedToDeckRef.current) userSwitchedToDeckRef.current = false;
-  }, [searchTerm, filters]);
-
-  const handleToggleDeckView = () => {
-    userSwitchedToDeckRef.current = !showDeck;
-    setShowDeck(!showDeck);
-  };
-
-  const sidebarProps = {
-    searchTerm, setSearchTerm, filters, setFilters, addKeyword, removeKeyword,
-    uniqueValues, isOpen: sidebarOpen, onToggle: () => setSidebarOpen(!sidebarOpen),
-    isCollapsed: sidebarCollapsed, onCollapseToggle: () => setSidebarCollapsed(!sidebarCollapsed),
-  };
-
-  if (cardsLoading || initialLoading) {
+  if (loading || initialLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
