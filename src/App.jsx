@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
-import { MainLayout, Header } from "./components/layout";
+import { MainLayout } from "./components/layout";
+import Header from "./components/layout/Header";
 import { CardSearch, DeckBuilder } from "./components/features";
 import { useCardSearchPage } from "./hooks/useCardSearchPage";
 import { clearImageCache } from "./services/imageCacheService";
@@ -8,6 +9,9 @@ import { deserializeDeck } from "./hooks/useSavedDecks";
 import MobileNav from "./components/MobileNav.jsx";
 import SharedDeck from "./pages/SharedDeck.jsx";
 import DeckPage from "./pages/DeckPage.jsx";
+import CardPage from "./pages/CardPage.jsx";
+import MyDecksPage from "./pages/MyDecksPage.jsx";
+import BrowseDecks from "./pages/BrowseDecks.jsx";
 
 function AppMain() {
   const navigate = useNavigate();
@@ -51,24 +55,33 @@ function AppMain() {
     sidebarOpen,
     setSidebarOpen,
     sidebarProps,
-    handleToggleDeckView,
+    hasActiveSearch,
   } = useCardSearchPage({ initialShowDeck: false });
 
-  // App-specific state not shared with DeckPage
+  const handleCardClick = (card) => navigate(`/card/${card.id}`);
+
   const [deckImageViewMode, setDeckImageViewMode] = useState("image");
 
-  // Pre-load a deck passed via router state (e.g. from the shared deck view)
+  // Open deck panel when navigating via ?deck=open (Deckbuilder nav button).
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("deck") === "open") {
+      setShowDeck(true);
+      // Remove the param so back-navigation doesn't re-trigger.
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location.search]);
+
+  // Pre-load a deck passed via router state (e.g. from the shared deck view).
   useEffect(() => {
     if (loading || cards.length === 0) return;
     const { importDeck } = location.state ?? {};
     if (!importDeck) return;
     setDeck(deserializeDeck(importDeck, cards));
     setShowDeck(true);
-    // Clear state so a back-navigation doesn't re-import
     navigate(location.pathname, { replace: true, state: {} });
   }, [loading, cards.length, location]);
 
-  // Mobile tab: "search" | "deck" | "filters"
   const mobileTab = showDeck ? "deck" : "search";
   const handleMobileTab = (tab) => {
     if (tab === "filters") {
@@ -83,12 +96,15 @@ function AppMain() {
     return (
       <Routes>
         <Route path="/share/:token" element={<SharedDeck />} />
+        <Route path="/card/:id" element={<CardPage />} />
+        <Route path="/my-decks" element={<MyDecksPage />} />
+        <Route path="/browse" element={<BrowseDecks />} />
         <Route
           path="*"
           element={
             <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
               <div className="text-center">
-                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4" />
                 <p className="text-xl text-gray-600">Loading cards...</p>
               </div>
             </div>
@@ -109,11 +125,7 @@ function AppMain() {
         onTabChange={handleMobileTab}
         deckCount={deckStats.total}
       />
-      <Header
-        deckStats={deckStats}
-        showDeck={showDeck}
-        onToggleDeckView={handleToggleDeckView}
-      />
+      <Header />
 
       {!showDeck ? (
         <CardSearch
@@ -131,6 +143,8 @@ function AppMain() {
           handleAddToDeck={handleAddToDeck}
           handleRemoveFromDeck={handleRemoveFromDeck}
           handlePageChange={handlePageChange}
+          hasActiveSearch={hasActiveSearch}
+          onCardClick={handleCardClick}
         />
       ) : (
         <DeckBuilder
@@ -169,6 +183,9 @@ function AppMain() {
     <Routes>
       <Route path="/share/:token" element={<SharedDeck />} />
       <Route path="/deck/:id" element={<DeckPage />} />
+      <Route path="/card/:id" element={<CardPage />} />
+      <Route path="/my-decks" element={<MyDecksPage />} />
+      <Route path="/browse" element={<BrowseDecks />} />
       <Route path="*" element={mainApp} />
     </Routes>
   );

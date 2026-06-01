@@ -1,17 +1,34 @@
 import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import PWAInstallButton from "../PWAInstallButton";
 import { useAuth } from "../../hooks/useAuth";
 import AuthModal from "../auth/AuthModal";
 
-const Header = ({ deckStats, showDeck, onToggleDeckView }) => {
+const NAV_LINKS = [
+  { label: "Browse Decks", to: "/browse" },
+  { label: "Deckbuilder", to: "/?deck=open" },
+  { label: "My Decks", to: "/my-decks" },
+];
+
+const Header = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const { user, signOut } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
+
+  const isActive = (to) => {
+    if (to === "/?deck=open") return false; // never highlight as "active"
+    return location.pathname === to;
+  };
 
   return (
     <div className="mb-6 md:mb-8">
       {/* Desktop header */}
       <div className="hidden md:flex justify-between items-center">
-        <div>
+        <div
+          className="cursor-pointer"
+          onClick={() => navigate("/")}
+        >
           <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-2">
             Legend of the Five Rings
           </h1>
@@ -21,6 +38,24 @@ const Header = ({ deckStats, showDeck, onToggleDeckView }) => {
         </div>
         <div className="flex items-center gap-4">
           <PWAInstallButton />
+
+          {/* Nav links */}
+          <nav className="flex items-center gap-1">
+            {NAV_LINKS.map(({ label, to }) => (
+              <button
+                key={label}
+                onClick={() => navigate(to)}
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                  isActive(to)
+                    ? "bg-indigo-100 text-indigo-700"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </nav>
+
           {user ? (
             <div className="flex items-center gap-2">
               <span
@@ -44,18 +79,12 @@ const Header = ({ deckStats, showDeck, onToggleDeckView }) => {
               Sign in
             </button>
           )}
-          <button
-            onClick={onToggleDeckView}
-            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-          >
-            {showDeck ? "Card search" : "Deck view"} ({deckStats.total} cards)
-          </button>
         </div>
       </div>
 
       {/* Mobile header */}
       <div className="flex md:hidden items-center justify-between">
-        <div>
+        <div onClick={() => navigate("/")} className="cursor-pointer">
           <h1 className="text-lg font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent leading-tight">
             L5R
           </h1>

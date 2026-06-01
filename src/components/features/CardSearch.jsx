@@ -18,7 +18,23 @@ const CardSearch = memo(({
   handleAddToDeck,
   handleRemoveFromDeck,
   handlePageChange,
+  hasActiveSearch,
+  onCardClick,
 }) => {
+  if (!hasActiveSearch) {
+    return (
+      <div className="flex flex-col items-center justify-center py-32 text-center">
+        <div className="text-6xl mb-6 select-none">⚔️</div>
+        <h2 className="text-2xl font-semibold text-gray-700 mb-2">
+          Search the card database
+        </h2>
+        <p className="text-gray-400 text-sm">
+          Use the filters on the left to find cards
+        </p>
+      </div>
+    );
+  }
+
   return (
     <>
       {/* View Toggle and Results Count */}
@@ -45,6 +61,7 @@ const CardSearch = memo(({
             onRemoveFromDeck={handleRemoveFromDeck}
             viewMode={viewMode}
             reloadTick={reloadTick}
+            onCardClick={onCardClick}
           />
         ))}
       </div>

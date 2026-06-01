@@ -7,7 +7,6 @@ import { useSavedDecks, deserializeDeck } from "../../hooks/useSavedDecks";
 import { useAuth } from "../../hooks/useAuth";
 import AuthModal from "../auth/AuthModal";
 import SaveDeckModal from "./SaveDeckModal";
-import SavedDecksList from "./SavedDecksList";
 import { clearAllCaches } from "../../services/imageCacheService";
 import { DECK_RULES } from "../../constants/index.js";
 import CardPreview from "./CardPreview";
@@ -76,6 +75,43 @@ function ImportModal({ importText, setImportText, onImport, onClose, missingCard
   );
 }
 
+// ─── Keyword stats ────────────────────────────────────────────────────────────
+function computeKeywordStats(deck) {
+  const counts = {};
+  for (const card of deck) {
+    for (const kw of card.keywords ?? []) {
+      counts[kw] = (counts[kw] ?? 0) + card.quantity;
+    }
+  }
+  return Object.entries(counts)
+    .filter(([, n]) => n > 1)
+    .sort(([, a], [, b]) => b - a);
+}
+
+function DeckStats({ deck }) {
+  const stats = computeKeywordStats(deck);
+  if (stats.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-32 text-slate-400 text-sm">
+        No keyword data yet.
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-1 py-1">
+      {stats.map(([keyword, count]) => (
+        <div
+          key={keyword}
+          className="flex items-center justify-between px-2 py-1 rounded hover:bg-slate-50"
+        >
+          <span className="text-xs text-slate-700">{keyword}</span>
+          <span className="text-xs font-mono font-bold text-slate-500">{count}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─── Main DeckEditor ───────────────────────────────────────────────────────────
 export default function DeckEditor({
   // deck state
@@ -98,8 +134,8 @@ export default function DeckEditor({
 
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
-  const [showMyDecks, setShowMyDecks] = useState(false);
   const [showShare, setShowShare] = useState(false);
+  const [showStats, setShowStats] = useState(false);
   const [showImageExport, setShowImageExport] = useState(false);
   const [saving, setSaving] = useState(false);
   const shareRef = useRef(null);
@@ -186,10 +222,22 @@ export default function DeckEditor({
             <div className="flex items-center gap-1 flex-wrap">
               {/* My Decks */}
               <button
-                onClick={() => { if (!user) { setShowAuthModal(true); } else { setShowMyDecks(true); } }}
+                onClick={() => { if (!user) { setShowAuthModal(true); } else { navigate("/my-decks"); } }}
                 className="text-xs font-medium text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
               >
                 My Decks
+              </button>
+
+              {/* Stats */}
+              <button
+                onClick={() => setShowStats((v) => !v)}
+                className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
+                  showStats
+                    ? "bg-indigo-100 text-indigo-700"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                }`}
+              >
+                Stats
               </button>
 
               {/* Import */}
@@ -275,16 +323,20 @@ export default function DeckEditor({
             </div>
           )}
 
-          {/* ── Card list ── */}
+          {/* ── Card list / Stats ── */}
           <div className="bg-white border border-slate-200 rounded-2xl shadow-sm px-3 py-3 flex-1">
-            <ModernDeckView
-              deckByType={deckByType}
-              deck={deck}
-              getDeckCount={getDeckCount}
-              handleAddToDeck={handleAddToDeck}
-              handleRemoveFromDeck={handleRemoveFromDeck}
-              onCardHover={onCardHover}
-            />
+            {showStats ? (
+              <DeckStats deck={deck} />
+            ) : (
+              <ModernDeckView
+                deckByType={deckByType}
+                deck={deck}
+                getDeckCount={getDeckCount}
+                handleAddToDeck={handleAddToDeck}
+                handleRemoveFromDeck={handleRemoveFromDeck}
+                onCardHover={onCardHover}
+              />
+            )}
           </div>
 
           {/* ── Utility footer ── */}
@@ -308,7 +360,7 @@ export default function DeckEditor({
         </div>
 
         {/* ── Right: sticky card preview (desktop only) ── */}
-        <div className="hidden md:block w-80 flex-shrink-0">
+        <div className="hidden md:block w-96 flex-shrink-0">
           <div className="sticky top-4 bg-white border border-slate-200 rounded-2xl shadow-sm px-4 py-4">
             <CardPreview
               card={hoveredCard}
@@ -337,14 +389,6 @@ export default function DeckEditor({
         <SaveDeckModal
           onSave={handleNewSave}
           onClose={() => setShowSaveModal(false)}
-        />
-      )}
-
-      {showMyDecks && (
-        <SavedDecksList
-          onLoadDeck={handleLoadDeck}
-          cards={cards}
-          onClose={() => setShowMyDecks(false)}
         />
       )}
 

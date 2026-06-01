@@ -1,14 +1,21 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useSavedDecks } from "../../hooks/useSavedDecks";
 import { useAuth } from "../../hooks/useAuth";
 import AuthModal from "../auth/AuthModal";
+
+const NAV_LINKS = [
+  { label: "Browse Decks", to: "/browse" },
+  { label: "Deckbuilder", to: "/?deck=open" },
+  { label: "My Decks", to: "/my-decks" },
+];
 
 export default function DeckPageHeader({
   deckMeta, setDeckMeta, deckId,
   deckStats, showDeck, onToggleDeckView,
   deck, cards, onNavigateAway,
 }) {
+  const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { updateDeck } = useSavedDecks();
   const [editingName, setEditingName] = useState(false);
@@ -68,7 +75,20 @@ export default function DeckPageHeader({
       </div>
 
       {/* Right side controls */}
-      <div className="flex items-center gap-3 flex-shrink-0">
+      <div className="flex items-center gap-3 flex-shrink-0 flex-wrap">
+        {/* Nav links */}
+        <nav className="flex items-center gap-1">
+          {NAV_LINKS.map(({ label, to }) => (
+            <button
+              key={label}
+              onClick={() => navigate(to)}
+              className="px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+
         {user ? (
           <div className="flex items-center gap-2">
             <span

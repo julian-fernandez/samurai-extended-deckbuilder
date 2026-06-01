@@ -69,6 +69,15 @@ export function useCardSearchPage({ initialShowDeck = false } = {}) {
     setShowDeck((prev) => !prev);
   };
 
+  const hasActiveSearch =
+    searchTerm !== "" ||
+    filters.clan !== "" ||
+    filters.type !== "" ||
+    filters.keywords.length > 0 ||
+    ["costMin", "costMax", "forceMin", "forceMax", "chiMin", "chiMax", "focusMin", "focusMax", "honorMin", "honorMax"].some(
+      (k) => filters[k] !== ""
+    );
+
   const sidebarProps = {
     searchTerm,
     setSearchTerm,
@@ -121,6 +130,7 @@ export function useCardSearchPage({ initialShowDeck = false } = {}) {
     sidebarCollapsed,
     setSidebarCollapsed,
     // computed
+    hasActiveSearch,
     sidebarProps,
     handleToggleDeckView,
   };

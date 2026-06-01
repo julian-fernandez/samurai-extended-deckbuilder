@@ -11,6 +11,20 @@ function serializeDeck(deck) {
 }
 
 /**
+ * Extract the clan string from a deck by reading the Stronghold card's clan.
+ * Returns null if no stronghold is present or has no clan.
+ */
+function extractClanFromDeck(deck) {
+  const stronghold = deck.find((c) => {
+    const t = Array.isArray(c.type) ? c.type[0] : c.type;
+    return t?.toLowerCase() === "stronghold";
+  });
+  if (!stronghold) return null;
+  const clan = stronghold.clan;
+  return (Array.isArray(clan) ? clan[0] : clan) ?? null;
+}
+
+/**
  * Reconstruct full deck from minimal JSONB using the cards lookup.
  * cards is the full cards array from useCards().
  */
@@ -38,7 +52,7 @@ export function useSavedDecks() {
     setError(null);
     const { data, error } = await supabase
       .from("decks")
-      .select("id, name, description, is_public, share_token, created_at, updated_at, cards")
+      .select("id, name, description, is_public, share_token, clan, created_at, updated_at, cards")
       .eq("user_id", user.id)
       .order("updated_at", { ascending: false });
 
@@ -53,7 +67,6 @@ export function useSavedDecks() {
   const saveDeck = useCallback(
     async ({ name, description = "", isPublic = false, deck }) => {
       if (!user) return { error: "Not signed in" };
-      const cards = serializeDeck(deck);
       const { data, error } = await supabase
         .from("decks")
         .insert({
@@ -61,7 +74,8 @@ export function useSavedDecks() {
           name,
           description,
           is_public: isPublic,
-          cards,
+          clan: extractClanFromDeck(deck),
+          cards: serializeDeck(deck),
         })
         .select()
         .single();
@@ -81,7 +95,10 @@ export function useSavedDecks() {
       if (name !== undefined) patch.name = name;
       if (description !== undefined) patch.description = description;
       if (isPublic !== undefined) patch.is_public = isPublic;
-      if (deck !== undefined) patch.cards = serializeDeck(deck);
+      if (deck !== undefined) {
+        patch.cards = serializeDeck(deck);
+        patch.clan = extractClanFromDeck(deck);
+      }
       patch.updated_at = new Date().toISOString();
 
       const { data, error } = await supabase
@@ -145,6 +162,23 @@ export function useSavedDecks() {
     return { data, error: error?.message };
   }, []);
 
+  /**
+   * Fetch all public decks, optionally filtered by clan.
+   * Returns { data, error } directly (not managed state).
+   */
+  const listPublicDecks = useCallback(async ({ clan } = {}) => {
+    let query = supabase
+      .from("decks")
+      .select("id, name, description, clan, share_token, created_at, cards")
+      .eq("is_public", true)
+      .order("created_at", { ascending: false });
+
+    if (clan) query = query.eq("clan", clan);
+
+    const { data, error } = await query;
+    return { data: data ?? [], error: error?.message };
+  }, []);
+
   return {
     decks,
     loading,
@@ -156,5 +190,6 @@ export function useSavedDecks() {
     togglePublic,
     getDeckByToken,
     getDeckById,
+    listPublicDecks,
   };
 }

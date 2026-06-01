@@ -10,6 +10,7 @@ const Card = ({
   viewMode = "text",
   reloadTick = 0,
   showQuantity = false, // Show quantity for deck view
+  onCardClick,
 }) => {
   const [imageLoadFailed, setImageLoadFailed] = useState(false);
   const [showBack, setShowBack] = useState(false);
@@ -168,7 +169,8 @@ const Card = ({
     <div
       className={`${getClanBackgroundColor(
         card.clan
-      )} backdrop-blur-sm rounded-2xl shadow-xl border overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 transform relative`}
+      )} backdrop-blur-sm rounded-2xl shadow-xl border overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 transform relative${onCardClick ? " cursor-pointer" : ""}`}
+      onClick={onCardClick ? () => onCardClick(card) : undefined}
     >
       {/* Card Header */}
       <div className="p-6 border-b border-gray-200/50">
@@ -383,7 +385,10 @@ const Card = ({
       )}
 
       {/* Deck Controls - Subtle corner buttons */}
-      <div className="absolute top-2 right-2 flex items-center gap-1">
+      <div
+        className="absolute top-2 right-2 flex items-center gap-1"
+        onClick={(e) => e.stopPropagation()}
+      >
         <button
           onClick={() => onRemoveFromDeck(card.id)}
           disabled={deckCount === 0}
