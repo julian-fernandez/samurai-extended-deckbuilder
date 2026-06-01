@@ -165,27 +165,3 @@ export const filterByRange = (cards, field, min, max) => {
     return true;
   });
 };
-
-/**
- * Get unique values for a field
- * @param {Array} cards - Array of card objects
- * @param {string} field - Field to extract values from
- * @returns {Array} Sorted unique values
- */
-export const getUniqueValues = (cards, field) => {
-  const valueSet = new Set();
-
-  cards.forEach((card) => {
-    const value = card[field];
-
-    if (value) {
-      if (Array.isArray(value)) {
-        value.forEach((v) => valueSet.add(v));
-      } else {
-        valueSet.add(value);
-      }
-    }
-  });
-
-  return Array.from(valueSet).sort();
-};

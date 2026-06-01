@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 
 export const useFilters = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -36,13 +36,6 @@ export const useFilters = () => {
     }));
   };
 
-  const handleFilterChange = (key, value) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  };
-
   return {
     searchTerm,
     setSearchTerm,
@@ -50,6 +43,5 @@ export const useFilters = () => {
     setFilters,
     addKeyword,
     removeKeyword,
-    handleFilterChange,
   };
 };

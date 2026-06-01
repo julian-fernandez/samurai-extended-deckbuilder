@@ -1,4 +1,4 @@
-import { SAMURAI_EXTENDED_SETS, BANNED_CARD_NAMES } from "../constants/index.js";
+import { BANNED_CARD_NAMES } from "../constants/index.js";
 import {
   extractKeywords,
   cleanTextFromKeywords,
@@ -29,16 +29,6 @@ const isBanned = (rawCard) => {
  */
 export const loadCards = async () => {
   try {
-    // First, try to load cached cards with image paths
-    // Temporarily disabled to force fresh load
-    // const cachedCards = loadCardsWithImagePaths();
-    // if (cachedCards && cachedCards.length > 0) {
-    //   console.log(
-    //     `Loaded ${cachedCards.length} cards from cache with image paths`
-    //   );
-    //   return cachedCards;
-    // }
-
     const response = await fetch("/cards_v3.json");
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -100,10 +90,6 @@ export const loadCards = async () => {
       });
       console.log(`Applied ${applied} cached image paths (JSON paths take priority)`);
     }
-
-    // Save the cards to cache for future use (only if they have image paths)
-    // Temporarily disabled to avoid localStorage quota exceeded error
-    // saveCardsWithImagePaths(transformedCards);
 
     return transformedCards;
   } catch (error) {

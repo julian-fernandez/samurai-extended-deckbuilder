@@ -392,32 +392,3 @@ export const BANNED_CARD_NAMES = new Set([
   // Spells
   "Flame Lash",
 ]);
-
-// Clan colors for UI
-export const CLAN_COLORS = {
-  Crab: { bg: "bg-blue-50", text: "bg-blue-600", border: "border-blue-200" },
-  Crane: { bg: "bg-gray-50", text: "bg-gray-600", border: "border-gray-200" },
-  Dragon: {
-    bg: "bg-green-50",
-    text: "bg-green-600",
-    border: "border-green-200",
-  },
-  Lion: {
-    bg: "bg-yellow-50",
-    text: "bg-yellow-600",
-    border: "border-yellow-200",
-  },
-  Mantis: { bg: "bg-lime-50", text: "bg-lime-600", border: "border-lime-200" },
-  Phoenix: { bg: "bg-red-50", text: "bg-red-500", border: "border-red-200" },
-  Scorpion: {
-    bg: "bg-purple-50",
-    text: "bg-purple-600",
-    border: "border-purple-200",
-  },
-  Spider: {
-    bg: "bg-slate-50",
-    text: "bg-slate-600",
-    border: "border-slate-200",
-  },
-  Unicorn: { bg: "bg-pink-50", text: "bg-pink-600", border: "border-pink-200" },
-};

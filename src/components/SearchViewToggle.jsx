@@ -7,7 +7,6 @@ const SearchViewToggle = ({
   totalPages,
   viewMode,
   setViewMode,
-  reloadTick,
   setReloadTick,
   clearImageCache,
 }) => {
