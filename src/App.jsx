@@ -13,7 +13,6 @@ import { deserializeDeck } from "./hooks/useSavedDecks";
 import MobileNav from "./components/MobileNav.jsx";
 import SharedDeck from "./pages/SharedDeck.jsx";
 import DeckPage from "./pages/DeckPage.jsx";
-import "./App.css";
 
 function AppMain() {
   const navigate = useNavigate();
