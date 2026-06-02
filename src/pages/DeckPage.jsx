@@ -106,7 +106,7 @@ export default function DeckPage() {
 
   // Always render the MainLayout shell — content area shows skeleton or content.
   return (
-    <MainLayout sidebarProps={sidebarProps} showScrollToTop={showScrollToTop} onScrollToTop={scrollToTop}>
+    <MainLayout sidebarProps={sidebarProps} showGlobalHeader={false} showScrollToTop={showScrollToTop} onScrollToTop={scrollToTop}>
       <DeckPageHeader
         deckMeta={deckMeta}
         setDeckMeta={setDeckMeta}

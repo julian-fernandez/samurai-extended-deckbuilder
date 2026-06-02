@@ -190,7 +190,6 @@ const Sidebar = ({
   addKeyword, removeKeyword,
   uniqueValues,
   isOpen, onToggle,
-  isCollapsed, onCollapseToggle,
 }) => {
   const clearAllFilters = () => {
     setSearchTerm("");
@@ -210,31 +209,14 @@ const Sidebar = ({
 
   return (
     <>
-      {/* ── Desktop sidebar ── */}
-      <div
-        className={`hidden md:flex bg-white shadow-lg flex-shrink-0 flex-col ${isCollapsed ? "w-16" : "w-80"}`}
-        style={{ height: "100vh" }}
-      >
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 flex-shrink-0">
-          {!isCollapsed && (
-            <h2 className="text-base font-bold text-gray-800">Search & Filters</h2>
-          )}
-          <button
-            onClick={onCollapseToggle}
-            className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded ml-auto"
-            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d={isCollapsed ? "M9 5l7 7-7 7" : "M15 19l-7-7 7-7"} />
-            </svg>
-          </button>
+      {/* ── Desktop sidebar — always visible, fixed width ── */}
+      <div className="hidden md:flex bg-white shadow-lg flex-shrink-0 flex-col self-stretch w-72">
+        <div className="p-4 border-b border-gray-200 flex-shrink-0">
+          <h2 className="text-base font-bold text-gray-800">Search & Filters</h2>
         </div>
-        {!isCollapsed && (
-          <div className="flex-1 overflow-y-auto">
-            <FilterForm {...formProps} />
-          </div>
-        )}
+        <div className="flex-1 overflow-y-auto">
+          <FilterForm {...formProps} />
+        </div>
       </div>
 
       {/* ── Mobile full-screen filter panel ── */}

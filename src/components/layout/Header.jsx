@@ -3,6 +3,7 @@ import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import PWAInstallButton from "../PWAInstallButton";
 import { useAuth } from "../../hooks/useAuth";
 import AuthModal from "../auth/AuthModal";
+import CardTypeahead from "../CardTypeahead";
 
 const NAV_LINKS = [
   { label: "Browse Cards", to: "/" },
@@ -27,59 +28,49 @@ const Header = () => {
   };
 
   return (
-    <div className="mb-6 md:mb-8">
-      {/* Desktop header */}
-      <div className="hidden md:flex justify-between items-center">
-        <div
-          className="cursor-pointer"
-          onClick={() => navigate("/")}
-        >
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-2">
-            Legend of the Five Rings
-          </h1>
-          <p className="text-xl text-gray-600 font-medium">
-            Samurai Extended Format
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <PWAInstallButton />
+    <div>
+      {/* Desktop nav bar */}
+      <div className="hidden md:flex items-center gap-3">
+        <PWAInstallButton />
 
-          {/* Nav links */}
-          <nav className="flex items-center gap-1">
-            {NAV_LINKS.map(({ label, to }) => (
-              <button
-                key={label}
-                onClick={() => navigate(to)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-                  isActive(to)
-                    ? "bg-indigo-100 text-indigo-700"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </nav>
+        <nav className="flex items-center gap-1">
+          {NAV_LINKS.map(({ label, to }) => (
+            <button
+              key={label}
+              onClick={() => navigate(to)}
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                isActive(to)
+                  ? "bg-white/15 text-white"
+                  : "text-slate-300 hover:text-white hover:bg-white/10"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
 
+        <CardTypeahead className="w-44 focus-within:w-56 transition-[width] duration-150" />
+
+        <div className="ml-auto flex items-center gap-2">
           {user ? (
-            <div className="flex items-center gap-2">
+            <>
               <span
-                className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold cursor-default"
+                className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-sm font-bold cursor-default"
                 title={user.email}
               >
                 {user.email?.[0]?.toUpperCase() ?? "?"}
               </span>
               <button
                 onClick={signOut}
-                className="text-sm text-gray-500 hover:text-gray-800 transition-colors"
+                className="text-sm text-slate-400 hover:text-white transition-colors"
               >
                 Sign out
               </button>
-            </div>
+            </>
           ) : (
             <button
               onClick={() => setShowAuthModal(true)}
-              className="px-4 py-2 border border-gray-300 text-sm font-medium text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 border border-slate-600 text-sm font-medium text-slate-300 rounded-xl hover:bg-white/10 hover:text-white transition-colors"
             >
               Sign in
             </button>
@@ -87,20 +78,15 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Mobile header */}
-      <div className="flex md:hidden items-center justify-between">
-        <div onClick={() => navigate("/")} className="cursor-pointer">
-          <h1 className="text-lg font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent leading-tight">
-            L5R
-          </h1>
-          <p className="text-xs text-gray-500">Samurai Extended</p>
-        </div>
+      {/* Mobile nav bar */}
+      <div className="flex md:hidden flex-col gap-2">
         <div className="flex items-center gap-2">
           <PWAInstallButton />
+          <CardTypeahead className="flex-1" />
           {user ? (
             <button
               onClick={signOut}
-              className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold"
+              className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
               title={`Signed in as ${user.email} — tap to sign out`}
             >
               {user.email?.[0]?.toUpperCase() ?? "?"}
@@ -108,7 +94,7 @@ const Header = () => {
           ) : (
             <button
               onClick={() => setShowAuthModal(true)}
-              className="px-3 py-1.5 border border-gray-300 text-xs font-medium text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-3 py-1.5 border border-slate-600 text-xs font-medium text-slate-300 rounded-lg hover:bg-white/10 hover:text-white transition-colors flex-shrink-0"
             >
               Sign in
             </button>

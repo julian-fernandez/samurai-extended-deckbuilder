@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useCardSearchPage } from "../hooks/useCardSearchPage";
-import { MainLayout } from "../components/layout";
-import Header from "../components/layout/Header";
+import { useCards } from "../hooks/useCards";
 import { findCardImage } from "../services/imageService";
 import CardImage from "../components/CardImage";
 
@@ -79,22 +77,10 @@ export default function CardPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const {
-    cards,
-    loading: cardsLoading,
-    hasActiveSearch,
-    sidebarProps,
-    showScrollToTop,
-    scrollToTop,
-  } = useCardSearchPage();
+  const { cards, loading: cardsLoading } = useCards();
 
   const [card, setCard] = useState(null);
   const [notFound, setNotFound] = useState(false);
-
-  // When the user types in the sidebar, send them to the search results page.
-  useEffect(() => {
-    if (hasActiveSearch) navigate("/");
-  }, [hasActiveSearch, navigate]);
 
   // Find the card from the already-loaded cards array.
   useEffect(() => {
@@ -265,13 +251,6 @@ export default function CardPage() {
   };
 
   return (
-    <MainLayout
-      sidebarProps={sidebarProps}
-      showScrollToTop={showScrollToTop}
-      onScrollToTop={scrollToTop}
-    >
-      <Header />
-      {content()}
-    </MainLayout>
+    content()
   );
 }

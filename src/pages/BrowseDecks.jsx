@@ -1,8 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { useCardSearchPage } from "../hooks/useCardSearchPage";
-import { MainLayout } from "../components/layout";
-import Header from "../components/layout/Header";
 import { useSavedDecks } from "../hooks/useSavedDecks";
 import { loadCards } from "../services/cardService";
 
@@ -52,7 +49,6 @@ function deriveClан(deckCards, cardMap) {
 
 export default function BrowseDecks() {
   const navigate = useNavigate();
-  const { sidebarProps, showScrollToTop, scrollToTop } = useCardSearchPage();
   const { listPublicDecks } = useSavedDecks();
 
   const [decks, setDecks] = useState([]);
@@ -104,14 +100,7 @@ export default function BrowseDecks() {
     : decks;
 
   return (
-    <MainLayout
-      sidebarProps={sidebarProps}
-      showScrollToTop={showScrollToTop}
-      onScrollToTop={scrollToTop}
-    >
-      <Header />
-
-      <div className="max-w-5xl">
+    <div className="max-w-5xl">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Browse Decks</h2>
         <p className="text-gray-500 text-sm mb-6">Public decks shared by the community.</p>
 
@@ -201,6 +190,5 @@ export default function BrowseDecks() {
           </div>
         )}
       </div>
-    </MainLayout>
   );
 }

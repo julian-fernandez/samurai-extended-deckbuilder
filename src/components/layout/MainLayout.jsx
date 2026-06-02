@@ -2,41 +2,51 @@ import React from "react";
 import Sidebar from "../Sidebar";
 import OfflineIndicator from "../OfflineIndicator";
 import MobileNav from "../MobileNav";
+import Header from "./Header";
 
 /**
- * App shell used by every page.
+ * App shell.
  *
- * sidebarProps    – passed to <Sidebar>
- * showScrollToTop – show the scroll-to-top button
- * onScrollToTop   – scroll handler
+ * The global nav Header is rendered full-width above the sidebar/content row
+ * so it never shifts when the sidebar appears or disappears.
  *
- * Mobile nav props (all optional; omit on pages that don't have deck state):
- *   isDeckView    – true when the home page deck panel is open
- *   deckCount     – card count badge on the Deckbuilder tab
- *   onSetDeckView – (bool) => void; toggle home deck/search view
+ * Props:
+ *   sidebarProps      – if provided, renders the filter Sidebar (Browse Cards only)
+ *   showGlobalHeader  – set false on pages with their own header (e.g. DeckPage)
+ *   showScrollToTop   – show the scroll-to-top button
+ *   onScrollToTop     – scroll handler
+ *   isDeckView        – passed to MobileNav for active-tab highlight
+ *   deckCount         – card count badge on the Deckbuilder mobile tab
  */
 const MainLayout = ({
   children,
   sidebarProps,
+  showGlobalHeader = true,
   showScrollToTop,
   onScrollToTop,
-  isDeckView = false,
   deckCount = 0,
 }) => {
   const onOpenFilters = sidebarProps?.onToggle;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       <OfflineIndicator />
 
-      <div className="flex min-h-screen">
-        {/* Sidebar — hidden on mobile, visible on md+ */}
-        <Sidebar {...sidebarProps} />
+      {/* Global nav — always full-width, unaffected by sidebar */}
+      {showGlobalHeader && (
+        <div className="bg-slate-900 px-4 py-3 md:px-8 flex-shrink-0">
+          <div className="max-w-[1200px] mx-auto">
+            <Header />
+          </div>
+        </div>
+      )}
 
-        {/* Main content */}
-        <div className="flex-1 min-w-0">
-          {/* pb-24 on mobile leaves room for the fixed bottom nav */}
-          <div className="container mx-auto px-4 py-6 pb-24 md:py-8 md:pb-8">
+      {/* Sidebar + content row — fills remaining height */}
+      <div className="flex flex-1 min-h-0">
+        {sidebarProps && <Sidebar {...sidebarProps} />}
+
+        <div className="flex-1 min-w-0 overflow-y-auto">
+          <div className="max-w-[1200px] mx-auto px-4 py-6 pb-24 md:py-8 md:pb-8">
             {children}
           </div>
         </div>
@@ -48,7 +58,6 @@ const MainLayout = ({
         onOpenFilters={onOpenFilters}
       />
 
-      {/* Scroll to top — sits above bottom nav on mobile */}
       {showScrollToTop && (
         <button
           onClick={onScrollToTop}

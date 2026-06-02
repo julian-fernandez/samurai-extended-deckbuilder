@@ -1,8 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useCardSearchPage } from "../hooks/useCardSearchPage";
-import { MainLayout } from "../components/layout";
-import Header from "../components/layout/Header";
 import { useSavedDecks } from "../hooks/useSavedDecks";
 import { useAuth } from "../hooks/useAuth";
 import AuthModal from "../components/auth/AuthModal";
@@ -40,7 +37,6 @@ function CopyLinkButton({ deck }) {
 
 export default function MyDecksPage() {
   const navigate = useNavigate();
-  const { sidebarProps, showScrollToTop, scrollToTop } = useCardSearchPage();
   const { user } = useAuth();
   const { decks, loading, error, listDecks, deleteDeck, togglePublic, updateDeck } = useSavedDecks();
   const [editingDeck, setEditingDeck] = useState(null);
@@ -64,14 +60,8 @@ export default function MyDecksPage() {
   };
 
   return (
-    <MainLayout
-      sidebarProps={sidebarProps}
-      showScrollToTop={showScrollToTop}
-      onScrollToTop={scrollToTop}
-    >
-      <Header />
-
-      <div className="max-w-4xl">
+    <>
+    <div className="max-w-4xl">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">My Decks</h2>
 
         {!user ? (
@@ -172,19 +162,19 @@ export default function MyDecksPage() {
             ))}
           </div>
         )}
-      </div>
+    </div>
 
-      {editingDeck && (
-        <SaveDeckModal
-          existingDeck={editingDeck}
-          onSave={async ({ name, description, isPublic }) =>
-            updateDeck({ id: editingDeck.id, name, description, isPublic })
-          }
-          onClose={() => setEditingDeck(null)}
-        />
-      )}
+    {editingDeck && (
+      <SaveDeckModal
+        existingDeck={editingDeck}
+        onSave={async ({ name, description, isPublic }) =>
+          updateDeck({ id: editingDeck.id, name, description, isPublic })
+        }
+        onClose={() => setEditingDeck(null)}
+      />
+    )}
 
-      {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
-    </MainLayout>
+    {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
+    </>
   );
 }

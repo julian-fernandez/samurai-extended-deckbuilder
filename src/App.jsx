@@ -1,17 +1,32 @@
 import { useState, useEffect, useRef } from "react";
-import { Routes, Route, useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { Routes, Route, Outlet, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { MainLayout } from "./components/layout";
-import Header from "./components/layout/Header";
 import { CardSearch, DeckBuilder } from "./components/features";
 import { useCardSearchPage } from "./hooks/useCardSearchPage";
 import { clearImageCache } from "./services/imageCacheService";
 import { deserializeDeck } from "./hooks/useSavedDecks";
-import { shouldAutoSwitchToSearch } from "./utils/navUtils";
 import SharedDeck from "./pages/SharedDeck.jsx";
 import DeckPage from "./pages/DeckPage.jsx";
 import CardPage from "./pages/CardPage.jsx";
 import MyDecksPage from "./pages/MyDecksPage.jsx";
 import BrowseDecks from "./pages/BrowseDecks.jsx";
+
+/**
+ * Persistent layout wrapper rendered by the layout route.
+ * Stays mounted while child routes swap — preserves sidebar state and focus.
+ */
+function AppShell({ sidebarProps, showScrollToTop, onScrollToTop, deckCount }) {
+  return (
+    <MainLayout
+      sidebarProps={sidebarProps}
+      showScrollToTop={showScrollToTop}
+      onScrollToTop={onScrollToTop}
+      deckCount={deckCount}
+    >
+      <Outlet />
+    </MainLayout>
+  );
+}
 
 function AppMain() {
   const navigate = useNavigate();
@@ -61,18 +76,25 @@ function AppMain() {
   } = useCardSearchPage({ initialShowDeck: false });
 
   const handleCardClick = (card) => navigate(`/card/${card.id}`);
-
   const [deckImageViewMode, setDeckImageViewMode] = useState("image");
 
-  // Auto-switch: if the user changes search/filters while in deck view, navigate
-  // back to Browse Cards so they immediately see results.
-  const prevFiltersRef = useRef({ searchTerm: "", filters: {} });
+  // Auto-navigate to Browse Cards whenever search/filters change from any other page.
+  // First call initialises the ref so we don't navigate on mount.
+  const prevFiltersRef = useRef(null);
   useEffect(() => {
+    if (prevFiltersRef.current === null) {
+      prevFiltersRef.current = { searchTerm, filters };
+      return;
+    }
     const { searchTerm: prevSearch, filters: prevFilters } = prevFiltersRef.current;
-    if (shouldAutoSwitchToSearch({ showDeck, searchTerm, filters, prevSearchTerm: prevSearch, prevFilters })) {
+    const changed =
+      searchTerm !== prevSearch ||
+      JSON.stringify(filters) !== JSON.stringify(prevFilters);
+    prevFiltersRef.current = { searchTerm, filters };
+
+    if (changed && (location.pathname !== "/" || showDeck)) {
       navigate("/");
     }
-    prevFiltersRef.current = { searchTerm, filters };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, filters]);
 
@@ -89,7 +111,6 @@ function AppMain() {
       setDeck(deserializeDeck(importDeck, cards));
       navigate("/?deck", { replace: true, state: {} });
     }
-    // If cards aren't loaded yet, the effect below handles it.
   }, [location.key, location.state, loading, cards.length]);
 
   // Finish importing once cards are available (cold-load case).
@@ -102,98 +123,83 @@ function AppMain() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, cards.length]);
 
-  if (loading) {
-    return (
-      <Routes>
-        <Route path="/share/:token" element={<SharedDeck />} />
-        <Route path="/card/:id" element={<CardPage />} />
-        <Route path="/my-decks" element={<MyDecksPage />} />
-        <Route path="/browse" element={<BrowseDecks />} />
-        <Route
-          path="*"
-          element={
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4" />
-                <p className="text-xl text-gray-600">Loading cards...</p>
-              </div>
-            </div>
-          }
-        />
-      </Routes>
-    );
-  }
+  const shellProps = {
+    sidebarProps,
+    showScrollToTop,
+    onScrollToTop: scrollToTop,
+    deckCount: deckStats.total,
+  };
 
-  const mainApp = (
-    <MainLayout
-      sidebarProps={sidebarProps}
-      showScrollToTop={showScrollToTop}
-      onScrollToTop={scrollToTop}
-      isDeckView={showDeck}
-      deckCount={deckStats.total}
-    >
-      <Header />
-
-      {!showDeck ? (
-        <CardSearch
-          currentCards={currentCards}
-          filteredCards={filteredCards}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          viewMode={viewMode}
-          setViewMode={setViewMode}
-          reloadTick={reloadTick}
-          setReloadTick={setReloadTick}
-          clearImageCache={clearImageCache}
-          deck={deck}
-          getDeckCount={getDeckCount}
-          handleAddToDeck={handleAddToDeck}
-          handleRemoveFromDeck={handleRemoveFromDeck}
-          handlePageChange={handlePageChange}
-          hasActiveSearch={hasActiveSearch}
-          onCardClick={handleCardClick}
-        />
-      ) : (
-        <DeckBuilder
-          deckImageViewMode={deckImageViewMode}
-          setDeckImageViewMode={setDeckImageViewMode}
-          reloadTick={reloadTick}
-          setReloadTick={setReloadTick}
-          clearImageCache={clearImageCache}
-          handleExportDeck={handleExportDeck}
-          showImport={showImport}
-          setShowImport={setShowImport}
-          handleClearDeck={handleClearDeck}
-          deckStats={deckStats}
-          deck={deck}
-          setDeck={setDeck}
-          cards={cards}
-          importText={importText}
-          setImportText={setImportText}
-          handleImportDeck={handleImportDeck}
-          missingCards={missingCards}
-          setMissingCards={setMissingCards}
-          deckValidation={deckValidation}
-          deckByType={deckByType}
-          getDeckCount={getDeckCount}
-          handleAddToDeck={handleAddToDeck}
-          handleRemoveFromDeck={handleRemoveFromDeck}
-          onCardHover={handleCardHover}
-          hoveredCard={hoveredCard}
-          onAfterSave={(id) => navigate(`/deck/${id}`)}
-        />
-      )}
-    </MainLayout>
+  const homeContent = loading ? (
+    <div className="flex items-center justify-center py-32">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4" />
+        <p className="text-lg text-gray-500">Loading cards…</p>
+      </div>
+    </div>
+  ) : !showDeck ? (
+    <CardSearch
+      currentCards={currentCards}
+      filteredCards={filteredCards}
+      currentPage={currentPage}
+      totalPages={totalPages}
+      viewMode={viewMode}
+      setViewMode={setViewMode}
+      reloadTick={reloadTick}
+      setReloadTick={setReloadTick}
+      clearImageCache={clearImageCache}
+      deck={deck}
+      getDeckCount={getDeckCount}
+      handleAddToDeck={handleAddToDeck}
+      handleRemoveFromDeck={handleRemoveFromDeck}
+      handlePageChange={handlePageChange}
+      hasActiveSearch={hasActiveSearch}
+      onCardClick={handleCardClick}
+    />
+  ) : (
+    <DeckBuilder
+      deckImageViewMode={deckImageViewMode}
+      setDeckImageViewMode={setDeckImageViewMode}
+      reloadTick={reloadTick}
+      setReloadTick={setReloadTick}
+      clearImageCache={clearImageCache}
+      handleExportDeck={handleExportDeck}
+      showImport={showImport}
+      setShowImport={setShowImport}
+      handleClearDeck={handleClearDeck}
+      deckStats={deckStats}
+      deck={deck}
+      setDeck={setDeck}
+      cards={cards}
+      importText={importText}
+      setImportText={setImportText}
+      handleImportDeck={handleImportDeck}
+      missingCards={missingCards}
+      setMissingCards={setMissingCards}
+      deckValidation={deckValidation}
+      deckByType={deckByType}
+      getDeckCount={getDeckCount}
+      handleAddToDeck={handleAddToDeck}
+      handleRemoveFromDeck={handleRemoveFromDeck}
+      onCardHover={handleCardHover}
+      hoveredCard={hoveredCard}
+      onAfterSave={(id) => navigate(`/deck/${id}`)}
+    />
   );
 
   return (
     <Routes>
+      {/* Full-page routes that manage their own layout */}
       <Route path="/share/:token" element={<SharedDeck />} />
       <Route path="/deck/:id" element={<DeckPage />} />
-      <Route path="/card/:id" element={<CardPage />} />
-      <Route path="/my-decks" element={<MyDecksPage />} />
-      <Route path="/browse" element={<BrowseDecks />} />
-      <Route path="*" element={mainApp} />
+
+      {/* Persistent layout — sidebar stays mounted across all child routes */}
+      <Route element={<AppShell {...shellProps} />}>
+        <Route path="/card/:id" element={<CardPage />} />
+        <Route path="/my-decks" element={<MyDecksPage />} />
+        <Route path="/browse" element={<BrowseDecks />} />
+        <Route path="*" element={homeContent} />
+      </Route>
     </Routes>
   );
 }

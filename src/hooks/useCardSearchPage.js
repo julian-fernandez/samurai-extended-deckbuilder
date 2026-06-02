@@ -25,7 +25,6 @@ export function useCardSearchPage({ initialShowDeck = false } = {}) {
   const [viewMode, setViewMode] = useState("image");
   const [reloadTick, setReloadTick] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const prevFiltersRef = useRef({ searchTerm: "", filters: {} });
 
@@ -74,8 +73,6 @@ export function useCardSearchPage({ initialShowDeck = false } = {}) {
     uniqueValues,
     isOpen: sidebarOpen,
     onToggle: () => setSidebarOpen((prev) => !prev),
-    isCollapsed: sidebarCollapsed,
-    onCollapseToggle: () => setSidebarCollapsed((prev) => !prev),
   };
 
   return {
@@ -113,8 +110,6 @@ export function useCardSearchPage({ initialShowDeck = false } = {}) {
     setReloadTick,
     sidebarOpen,
     setSidebarOpen,
-    sidebarCollapsed,
-    setSidebarCollapsed,
     // computed
     hasActiveSearch,
     sidebarProps,
