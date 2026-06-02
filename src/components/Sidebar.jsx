@@ -190,6 +190,7 @@ const Sidebar = ({
   addKeyword, removeKeyword,
   uniqueValues,
   isOpen, onToggle,
+  isCollapsed, onCollapseToggle,
 }) => {
   const clearAllFilters = () => {
     setSearchTerm("");
@@ -209,14 +210,36 @@ const Sidebar = ({
 
   return (
     <>
-      {/* ── Desktop sidebar — always visible, fixed width ── */}
-      <div className="hidden md:flex bg-white shadow-lg flex-shrink-0 flex-col self-stretch w-72">
-        <div className="p-4 border-b border-gray-200 flex-shrink-0">
-          <h2 className="text-base font-bold text-gray-800">Search & Filters</h2>
+      {/* ── Desktop sidebar — fixed, left edge of viewport, below nav (top-14 = 56 px) ── */}
+      <div
+        className={`hidden md:flex fixed left-0 top-14 bottom-0 z-20 bg-white border-r border-gray-200 shadow-md flex-col transition-[width] duration-200 ${
+          isCollapsed ? "w-10" : "w-64"
+        }`}
+      >
+        {/* Header / collapse toggle */}
+        <div className={`flex items-center border-b border-gray-200 flex-shrink-0 ${
+          isCollapsed ? "justify-center py-3" : "justify-between px-4 py-3"
+        }`}>
+          {!isCollapsed && (
+            <h2 className="text-sm font-bold text-gray-800">Search & Filters</h2>
+          )}
+          <button
+            onClick={onCollapseToggle}
+            className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded"
+            aria-label={isCollapsed ? "Expand filters" : "Collapse filters"}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d={isCollapsed ? "M9 5l7 7-7 7" : "M15 19l-7-7 7-7"} />
+            </svg>
+          </button>
         </div>
-        <div className="flex-1 overflow-y-auto">
-          <FilterForm {...formProps} />
-        </div>
+
+        {!isCollapsed && (
+          <div className="flex-1 overflow-y-auto">
+            <FilterForm {...formProps} />
+          </div>
+        )}
       </div>
 
       {/* ── Mobile full-screen filter panel ── */}

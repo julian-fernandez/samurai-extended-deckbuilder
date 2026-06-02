@@ -61,7 +61,7 @@ export default function MyDecksPage() {
 
   return (
     <>
-    <div className="max-w-4xl">
+    <div>
         <h2 className="text-2xl font-bold text-gray-900 mb-6">My Decks</h2>
 
         {!user ? (

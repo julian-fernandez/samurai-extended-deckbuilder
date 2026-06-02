@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
-import PWAInstallButton from "../PWAInstallButton";
 import { useAuth } from "../../hooks/useAuth";
 import AuthModal from "../auth/AuthModal";
 import CardTypeahead from "../CardTypeahead";
@@ -31,7 +30,6 @@ const Header = () => {
     <div>
       {/* Desktop nav bar */}
       <div className="hidden md:flex items-center gap-3">
-        <PWAInstallButton />
 
         <nav className="flex items-center gap-1">
           {NAV_LINKS.map(({ label, to }) => (
@@ -81,7 +79,6 @@ const Header = () => {
       {/* Mobile nav bar */}
       <div className="flex md:hidden flex-col gap-2">
         <div className="flex items-center gap-2">
-          <PWAInstallButton />
           <CardTypeahead className="flex-1" />
           {user ? (
             <button

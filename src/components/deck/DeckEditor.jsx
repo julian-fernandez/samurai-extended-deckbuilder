@@ -186,7 +186,7 @@ export default function DeckEditor({
 
   return (
     <>
-      <div className="flex flex-col md:flex-row gap-4 md:gap-6 min-h-[60vh] max-w-4xl mx-auto w-full">
+      <div className="flex flex-col md:flex-row gap-4 md:gap-6 min-h-[60vh]">
         {/* ── Left: deck list column ── */}
         <div className="flex-1 min-w-0 flex flex-col gap-3">
 
