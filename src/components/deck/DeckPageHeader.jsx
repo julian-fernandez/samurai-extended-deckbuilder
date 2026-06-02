@@ -7,7 +7,6 @@ import AuthModal from "../auth/AuthModal";
 const NAV_LINKS = [
   { label: "Browse Cards", to: "/" },
   { label: "Browse Decks", to: "/browse" },
-  { label: "Deckbuilder", to: "/?deck=open" },
   { label: "My Decks", to: "/my-decks" },
 ];
 
@@ -153,6 +152,12 @@ export default function DeckPageHeader({
                 {label}
               </button>
             ))}
+            <button
+              onClick={() => navigate("/", { state: { openDeck: true } })}
+              className="px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+            >
+              Deckbuilder
+            </button>
           </nav>
 
           {user ? (

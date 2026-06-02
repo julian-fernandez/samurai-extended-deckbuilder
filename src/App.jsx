@@ -59,24 +59,21 @@ function AppMain() {
 
   const [deckImageViewMode, setDeckImageViewMode] = useState("image");
 
-  // Open deck panel when navigating via ?deck=open (Deckbuilder nav button).
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    if (params.get("deck") === "open") {
-      setShowDeck(true);
-      navigate(location.pathname, { replace: true });
-    }
-  }, [location.search]);
-
-  // Pre-load a deck passed via router state (e.g. from the shared deck view).
+  // Handle router state on mount: open deckbuilder or pre-load an imported deck.
   useEffect(() => {
     if (loading || cards.length === 0) return;
-    const { importDeck } = location.state ?? {};
+    const { importDeck, openDeck } = location.state ?? {};
+    if (openDeck) {
+      setShowDeck(true);
+      navigate(location.pathname, { replace: true, state: {} });
+      return;
+    }
     if (!importDeck) return;
     setDeck(deserializeDeck(importDeck, cards));
     setShowDeck(true);
     navigate(location.pathname, { replace: true, state: {} });
-  }, [loading, cards.length, location]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, cards.length]);
 
   if (loading) {
     return (
@@ -109,7 +106,10 @@ function AppMain() {
       deckCount={deckStats.total}
       onSetDeckView={setShowDeck}
     >
-      <Header onBrowseCards={() => setShowDeck(false)} />
+      <Header
+        onBrowseCards={() => setShowDeck(false)}
+        onOpenDeckbuilder={() => setShowDeck(true)}
+      />
 
       {!showDeck ? (
         <CardSearch

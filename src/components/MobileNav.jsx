@@ -77,7 +77,7 @@ export default function MobileNav({
         } else if (location.pathname.startsWith("/deck/")) {
           // already on a deck page, do nothing
         } else {
-          navigate("/?deck=open");
+          navigate("/", { state: { openDeck: true } });
         }
         break;
       case "browse":

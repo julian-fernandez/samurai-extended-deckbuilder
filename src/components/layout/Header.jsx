@@ -4,25 +4,30 @@ import PWAInstallButton from "../PWAInstallButton";
 import { useAuth } from "../../hooks/useAuth";
 import AuthModal from "../auth/AuthModal";
 
+// "to" is null for items handled entirely by a callback.
 const NAV_LINKS = [
   { label: "Browse Cards", to: "/" },
   { label: "Browse Decks", to: "/browse" },
-  { label: "Deckbuilder", to: "/?deck=open" },
+  { label: "Deckbuilder", to: null },
   { label: "My Decks", to: "/my-decks" },
 ];
 
-const Header = ({ onBrowseCards } = {}) => {
+const Header = ({ onBrowseCards, onOpenDeckbuilder } = {}) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   const isActive = (to) => {
-    if (to === "/?deck=open") return false;
+    if (!to) return false;
     return location.pathname === to;
   };
 
-  const handleNavClick = (to) => {
+  const handleNavClick = (to, label) => {
+    if (label === "Deckbuilder") {
+      onOpenDeckbuilder?.();
+      return;
+    }
     if (to === "/" && onBrowseCards) {
       onBrowseCards();
     }
@@ -52,7 +57,7 @@ const Header = ({ onBrowseCards } = {}) => {
             {NAV_LINKS.map(({ label, to }) => (
               <button
                 key={label}
-                onClick={() => handleNavClick(to)}
+                onClick={() => handleNavClick(to, label)}
                 className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
                   isActive(to)
                     ? "bg-indigo-100 text-indigo-700"
