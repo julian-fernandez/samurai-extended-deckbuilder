@@ -5,7 +5,6 @@ import { CardSearch, DeckBuilder } from "./components/features";
 import { useCardSearchPage } from "./hooks/useCardSearchPage";
 import { clearImageCache } from "./services/imageCacheService";
 import { deserializeDeck } from "./hooks/useSavedDecks";
-import SharedDeck from "./pages/SharedDeck.jsx";
 import DeckPage from "./pages/DeckPage.jsx";
 import CardPage from "./pages/CardPage.jsx";
 import MyDecksPage from "./pages/MyDecksPage.jsx";
@@ -189,8 +188,7 @@ function AppMain() {
 
   return (
     <Routes>
-      {/* Full-page routes that manage their own layout */}
-      <Route path="/share/:token" element={<SharedDeck />} />
+      {/* Deck page manages its own layout (owner gets editor, others get read-only view) */}
       <Route path="/deck/:id" element={<DeckPage />} />
 
       {/* Persistent layout — sidebar stays mounted across all child routes */}

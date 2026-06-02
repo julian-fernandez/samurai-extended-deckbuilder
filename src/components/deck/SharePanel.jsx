@@ -47,9 +47,7 @@ export default function SharePanel({ deckId, deckMeta, setDeckMeta, deck, onClos
     return () => document.removeEventListener("mousedown", handler);
   }, [onClose]);
 
-  const shareUrl = deckMeta?.shareToken
-    ? `${window.location.origin}/share/${deckMeta.shareToken}`
-    : null;
+  const shareUrl = deckId ? `${window.location.origin}/deck/${deckId}` : null;
 
   const textExport = deck?.length > 0 ? exportDeck(deck) : null;
 
@@ -58,7 +56,7 @@ export default function SharePanel({ deckId, deckMeta, setDeckMeta, deck, onClos
     setTogglingPublic(true);
     const { data } = await togglePublic(deckId, deckMeta?.isPublic);
     if (data && setDeckMeta) {
-      setDeckMeta((prev) => ({ ...prev, isPublic: data.is_public, shareToken: data.share_token }));
+      setDeckMeta((prev) => ({ ...prev, isPublic: data.is_public }));
     }
     setTogglingPublic(false);
   };
@@ -116,7 +114,7 @@ export default function SharePanel({ deckId, deckMeta, setDeckMeta, deck, onClos
         <CopyButton
           label="Copy share URL"
           value={isPublic && shareUrl ? shareUrl : null}
-          disabled={!isSaved || !isPublic || !shareUrl}
+          disabled={!isSaved || !isPublic}
           disabledTip={!isSaved ? "Save deck first" : "Enable public link above"}
         />
 

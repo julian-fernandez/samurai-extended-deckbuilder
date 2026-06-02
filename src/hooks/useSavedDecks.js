@@ -163,6 +163,43 @@ export function useSavedDecks() {
   }, []);
 
   /**
+   * Save a copy of another deck to the current user's account.
+   * Copies cards JSONB directly without deserializing.
+   */
+  const duplicateDeck = useCallback(
+    async (sourceDeckId) => {
+      if (!user) return { error: "Not signed in" };
+
+      const { data: source, error: fetchError } = await supabase
+        .from("decks")
+        .select("name, description, cards, clan")
+        .eq("id", sourceDeckId)
+        .single();
+
+      if (fetchError) return { error: fetchError.message };
+
+      const { data, error } = await supabase
+        .from("decks")
+        .insert({
+          user_id: user.id,
+          name: `${source.name} (copy)`,
+          description: source.description ?? "",
+          is_public: false,
+          clan: source.clan,
+          cards: source.cards,
+        })
+        .select()
+        .single();
+
+      if (!error) {
+        setDecks((prev) => [data, ...prev]);
+      }
+      return { data, error: error?.message };
+    },
+    [user]
+  );
+
+  /**
    * Fetch all public decks, optionally filtered by clan.
    * Returns { data, error } directly (not managed state).
    */
@@ -190,6 +227,7 @@ export function useSavedDecks() {
     togglePublic,
     getDeckByToken,
     getDeckById,
+    duplicateDeck,
     listPublicDecks,
   };
 }

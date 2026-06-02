@@ -15,13 +15,13 @@ function CopyLinkButton({ deck }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
-    const url = `${window.location.origin}/share/${deck.share_token}`;
+    const url = `${window.location.origin}/deck/${deck.id}`;
     await navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (!deck.share_token) return null;
+  if (!deck.is_public) return null;
 
   return (
     <button
@@ -147,7 +147,7 @@ export default function SavedDecksList({ onLoadDeck, cards, onClose }) {
                   >
                     {deck.is_public ? "🔒" : "🌐"}
                   </button>
-                  {deck.is_public && deck.share_token && (
+                  {deck.is_public && (
                     <CopyLinkButton deck={deck} />
                   )}
                   <button

@@ -176,14 +176,12 @@ export default function BrowseDecks() {
                     <span>{formatDate(deck.created_at)}</span>
                   </div>
 
-                  {deck.share_token && (
-                    <button
-                      onClick={() => navigate(`/share/${deck.share_token}`)}
-                      className="mt-auto py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-                    >
-                      View deck
-                    </button>
-                  )}
+                  <button
+                    onClick={() => navigate(`/deck/${deck.id}`)}
+                    className="mt-auto py-1.5 text-xs font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                  >
+                    View deck
+                  </button>
                 </div>
               );
             })}
