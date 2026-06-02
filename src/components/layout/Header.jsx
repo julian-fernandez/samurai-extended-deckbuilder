@@ -1,37 +1,29 @@
 import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import PWAInstallButton from "../PWAInstallButton";
 import { useAuth } from "../../hooks/useAuth";
 import AuthModal from "../auth/AuthModal";
-import { resolveHeaderNavClick } from "../../utils/navUtils";
 
-// "to" is null for items handled entirely by a callback.
 const NAV_LINKS = [
   { label: "Browse Cards", to: "/" },
   { label: "Browse Decks", to: "/browse" },
-  { label: "Deckbuilder", to: null },
+  { label: "Deckbuilder", to: "/?deck" },
   { label: "My Decks", to: "/my-decks" },
 ];
 
-const Header = ({ onBrowseCards, onOpenDeckbuilder, isDeckView = false } = {}) => {
+const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { user, signOut } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
 
-  const isActive = (to, label) => {
-    if (label === "Deckbuilder") return isDeckView;
-    if (label === "Browse Cards") return location.pathname === "/" && !isDeckView;
-    if (!to) return false;
-    return location.pathname === to;
-  };
+  const isDeckView = location.pathname === "/" && searchParams.has("deck");
 
-  const handleNavClick = (to, label) => {
-    const actions = [resolveHeaderNavClick({ label, to, onBrowseCards, onOpenDeckbuilder })].flat();
-    for (const action of actions) {
-      if (action.type === "callback") action.fn();
-      else if (action.type === "navigate") navigate(action.to, action.state ? { state: action.state } : undefined);
-    }
+  const isActive = (to) => {
+    if (to === "/?deck") return isDeckView;
+    if (to === "/") return location.pathname === "/" && !isDeckView;
+    return location.pathname === to;
   };
 
   return (
@@ -57,9 +49,9 @@ const Header = ({ onBrowseCards, onOpenDeckbuilder, isDeckView = false } = {}) =
             {NAV_LINKS.map(({ label, to }) => (
               <button
                 key={label}
-                onClick={() => handleNavClick(to, label)}
+                onClick={() => navigate(to)}
                 className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-                  isActive(to, label)
+                  isActive(to)
                     ? "bg-indigo-100 text-indigo-700"
                     : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                 }`}

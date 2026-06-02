@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 const SearchIcon = () => (
   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -46,12 +46,13 @@ const FiltersIcon = () => (
  */
 export default function MobileNav({
   deckCount = 0,
-  isDeckView = false,
-  onSetDeckView,
   onOpenFilters,
 }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const isDeckView = location.pathname === "/" && searchParams.has("deck");
 
   const activeTab = (() => {
     const { pathname } = location;
@@ -62,22 +63,15 @@ export default function MobileNav({
   })();
 
   const handleTab = (id) => {
-    const onHome = location.pathname === "/";
     switch (id) {
       case "search":
-        if (onHome) {
-          onSetDeckView?.(false);
-        } else {
-          navigate("/");
-        }
+        navigate("/");
         break;
       case "deck":
-        if (onHome) {
-          onSetDeckView?.(true);
-        } else if (location.pathname.startsWith("/deck/")) {
-          // already on a deck page, do nothing
+        if (location.pathname.startsWith("/deck/")) {
+          // already on a saved-deck page, do nothing
         } else {
-          navigate("/", { state: { openDeck: true } });
+          navigate("/?deck");
         }
         break;
       case "browse":

@@ -1,32 +1,10 @@
 /**
- * Pure navigation helpers used by Header and MobileNav.
- * Extracted so they can be unit-tested without a DOM.
+ * Pure navigation helpers.
  *
- * resolveHeaderNavClick returns a descriptor object, not side effects:
- *   { type: "callback", fn }          – call fn(), no navigation
- *   { type: "navigate", to, state? }  – call navigate(to, { state })
- *   [descriptor, descriptor]          – do both, in order
+ * resolveHeaderNavClick returns a descriptor object:
+ *   { type: "navigate", to }  – call navigate(to)
  */
-export function resolveHeaderNavClick({ label, to, onBrowseCards, onOpenDeckbuilder }) {
-  if (label === "Deckbuilder") {
-    if (typeof onOpenDeckbuilder === "function") {
-      return { type: "callback", fn: onOpenDeckbuilder };
-    }
-    // From pages that don't own the deck state, navigate with router state.
-    return { type: "navigate", to: "/", state: { openDeck: true } };
-  }
-
-  if (to === "/") {
-    if (typeof onBrowseCards === "function") {
-      return [
-        { type: "callback", fn: onBrowseCards },
-        { type: "navigate", to: "/" },
-      ];
-    }
-    // From non-home pages: explicitly close deck view when returning to Browse Cards.
-    return { type: "navigate", to: "/", state: { closeDeck: true } };
-  }
-
+export function resolveHeaderNavClick({ label, to }) {
   return { type: "navigate", to };
 }
 

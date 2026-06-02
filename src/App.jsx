@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { MainLayout } from "./components/layout";
 import Header from "./components/layout/Header";
 import { CardSearch, DeckBuilder } from "./components/features";
 import { useCardSearchPage } from "./hooks/useCardSearchPage";
 import { clearImageCache } from "./services/imageCacheService";
 import { deserializeDeck } from "./hooks/useSavedDecks";
+import { shouldAutoSwitchToSearch } from "./utils/navUtils";
 import SharedDeck from "./pages/SharedDeck.jsx";
 import DeckPage from "./pages/DeckPage.jsx";
 import CardPage from "./pages/CardPage.jsx";
@@ -15,6 +16,10 @@ import BrowseDecks from "./pages/BrowseDecks.jsx";
 function AppMain() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  // showDeck is derived directly from the URL — no local state, no effects, no flicker.
+  const showDeck = searchParams.has("deck");
 
   const {
     cards,
@@ -45,8 +50,8 @@ function AppMain() {
     scrollToTop,
     hoveredCard,
     handleCardHover,
-    showDeck,
-    setShowDeck,
+    searchTerm,
+    filters,
     viewMode,
     setViewMode,
     reloadTick,
@@ -59,46 +64,41 @@ function AppMain() {
 
   const [deckImageViewMode, setDeckImageViewMode] = useState("image");
 
-  // AppMain never unmounts, so we track which navigation key we've processed
-  // to avoid re-applying router state on unrelated re-renders.
-  const processedNavKeyRef = useRef(null);
+  // Auto-switch: if the user changes search/filters while in deck view, navigate
+  // back to Browse Cards so they immediately see results.
+  const prevFiltersRef = useRef({ searchTerm: "", filters: {} });
+  useEffect(() => {
+    const { searchTerm: prevSearch, filters: prevFilters } = prevFiltersRef.current;
+    if (shouldAutoSwitchToSearch({ showDeck, searchTerm, filters, prevSearchTerm: prevSearch, prevFilters })) {
+      navigate("/");
+    }
+    prevFiltersRef.current = { searchTerm, filters };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm, filters]);
 
+  // Handle importDeck router state (e.g. loading a shared deck into the builder).
+  const processedNavKeyRef = useRef(null);
   useEffect(() => {
     if (location.key === processedNavKeyRef.current) return;
     processedNavKeyRef.current = location.key;
 
-    const { openDeck, closeDeck, importDeck } = location.state ?? {};
+    const { importDeck } = location.state ?? {};
+    if (!importDeck) return;
 
-    if (openDeck) {
-      setShowDeck(true);
-      navigate(location.pathname, { replace: true, state: {} });
-      return;
+    if (!loading && cards.length > 0) {
+      setDeck(deserializeDeck(importDeck, cards));
+      navigate("/?deck", { replace: true, state: {} });
     }
-
-    if (closeDeck) {
-      setShowDeck(false);
-      navigate(location.pathname, { replace: true, state: {} });
-      return;
-    }
-
-    if (importDeck) {
-      if (!loading && cards.length > 0) {
-        setDeck(deserializeDeck(importDeck, cards));
-        setShowDeck(true);
-        navigate(location.pathname, { replace: true, state: {} });
-      }
-      // If cards aren't loaded yet, the next effect below handles it.
-    }
+    // If cards aren't loaded yet, the effect below handles it.
   }, [location.key, location.state, loading, cards.length]);
 
-  // Finish importing a deck once cards are available (handles cold-load case).
+  // Finish importing once cards are available (cold-load case).
   useEffect(() => {
     if (loading || cards.length === 0) return;
     const { importDeck } = location.state ?? {};
     if (!importDeck) return;
     setDeck(deserializeDeck(importDeck, cards));
-    setShowDeck(true);
-    navigate(location.pathname, { replace: true, state: {} });
+    navigate("/?deck", { replace: true, state: {} });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, cards.length]);
 
@@ -131,13 +131,8 @@ function AppMain() {
       onScrollToTop={scrollToTop}
       isDeckView={showDeck}
       deckCount={deckStats.total}
-      onSetDeckView={setShowDeck}
     >
-      <Header
-        onBrowseCards={() => setShowDeck(false)}
-        onOpenDeckbuilder={() => setShowDeck(true)}
-        isDeckView={showDeck}
-      />
+      <Header />
 
       {!showDeck ? (
         <CardSearch

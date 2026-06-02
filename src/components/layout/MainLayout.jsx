@@ -22,7 +22,6 @@ const MainLayout = ({
   onScrollToTop,
   isDeckView = false,
   deckCount = 0,
-  onSetDeckView,
 }) => {
   const onOpenFilters = sidebarProps?.onToggle;
 
@@ -45,9 +44,7 @@ const MainLayout = ({
 
       {/* Bottom nav (mobile only) */}
       <MobileNav
-        isDeckView={isDeckView}
         deckCount={deckCount}
-        onSetDeckView={onSetDeckView}
         onOpenFilters={onOpenFilters}
       />
 
