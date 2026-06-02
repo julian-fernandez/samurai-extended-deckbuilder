@@ -88,6 +88,7 @@ export default function BrowseDecks() {
     fetchDecks(selectedClan);
   }, [selectedClan, fetchDecks]);
 
+
   // For a deck with no stored clan, try to derive it from the stronghold.
   const resolveClan = (deck) => {
     if (deck.clan) return deck.clan;

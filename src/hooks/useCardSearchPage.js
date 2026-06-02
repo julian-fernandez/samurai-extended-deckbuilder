@@ -5,6 +5,7 @@ import { useFilters } from "./useFilters";
 import { usePagination } from "./usePagination";
 import { useScrollToTop } from "./useScrollToTop";
 import { useCardPreview } from "./useCardPreview";
+import { shouldAutoSwitchToSearch } from "../utils/navUtils";
 
 /**
  * Composes all hooks and state shared between the main App route and DeckPage.
@@ -39,20 +40,16 @@ export function useCardSearchPage({ initialShowDeck = false } = {}) {
 
   // Any change to search / filters while the deck panel is open switches back
   // to the card search view so the results are immediately visible.
+  // NOTE: showDeck is intentionally NOT in deps — we only want to react to
+  // filter/search changes, not to the deck being opened/closed itself.
   useEffect(() => {
-    if (!showDeck) {
-      prevFiltersRef.current = { searchTerm, filters };
-      return;
-    }
-    const filtersChanged =
-      searchTerm !== prevFiltersRef.current.searchTerm ||
-      JSON.stringify(filters) !== JSON.stringify(prevFiltersRef.current.filters);
-
-    if (filtersChanged) {
+    const { searchTerm: prevSearch, filters: prevFilters } = prevFiltersRef.current;
+    if (shouldAutoSwitchToSearch({ showDeck, searchTerm, filters, prevSearchTerm: prevSearch, prevFilters })) {
       setShowDeck(false);
     }
     prevFiltersRef.current = { searchTerm, filters };
-  }, [searchTerm, filters, showDeck]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm, filters]);
 
   const handleToggleDeckView = () => {
     setShowDeck((prev) => !prev);

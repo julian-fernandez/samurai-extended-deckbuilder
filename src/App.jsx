@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { MainLayout } from "./components/layout";
 import Header from "./components/layout/Header";
@@ -59,15 +59,42 @@ function AppMain() {
 
   const [deckImageViewMode, setDeckImageViewMode] = useState("image");
 
-  // Handle router state on mount: open deckbuilder or pre-load an imported deck.
+  // AppMain never unmounts, so we track which navigation key we've processed
+  // to avoid re-applying router state on unrelated re-renders.
+  const processedNavKeyRef = useRef(null);
+
   useEffect(() => {
-    if (loading || cards.length === 0) return;
-    const { importDeck, openDeck } = location.state ?? {};
+    if (location.key === processedNavKeyRef.current) return;
+    processedNavKeyRef.current = location.key;
+
+    const { openDeck, closeDeck, importDeck } = location.state ?? {};
+
     if (openDeck) {
       setShowDeck(true);
       navigate(location.pathname, { replace: true, state: {} });
       return;
     }
+
+    if (closeDeck) {
+      setShowDeck(false);
+      navigate(location.pathname, { replace: true, state: {} });
+      return;
+    }
+
+    if (importDeck) {
+      if (!loading && cards.length > 0) {
+        setDeck(deserializeDeck(importDeck, cards));
+        setShowDeck(true);
+        navigate(location.pathname, { replace: true, state: {} });
+      }
+      // If cards aren't loaded yet, the next effect below handles it.
+    }
+  }, [location.key, location.state, loading, cards.length]);
+
+  // Finish importing a deck once cards are available (handles cold-load case).
+  useEffect(() => {
+    if (loading || cards.length === 0) return;
+    const { importDeck } = location.state ?? {};
     if (!importDeck) return;
     setDeck(deserializeDeck(importDeck, cards));
     setShowDeck(true);
@@ -109,6 +136,7 @@ function AppMain() {
       <Header
         onBrowseCards={() => setShowDeck(false)}
         onOpenDeckbuilder={() => setShowDeck(true)}
+        isDeckView={showDeck}
       />
 
       {!showDeck ? (

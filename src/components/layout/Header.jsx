@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import PWAInstallButton from "../PWAInstallButton";
 import { useAuth } from "../../hooks/useAuth";
 import AuthModal from "../auth/AuthModal";
+import { resolveHeaderNavClick } from "../../utils/navUtils";
 
 // "to" is null for items handled entirely by a callback.
 const NAV_LINKS = [
@@ -12,26 +13,25 @@ const NAV_LINKS = [
   { label: "My Decks", to: "/my-decks" },
 ];
 
-const Header = ({ onBrowseCards, onOpenDeckbuilder } = {}) => {
+const Header = ({ onBrowseCards, onOpenDeckbuilder, isDeckView = false } = {}) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
 
-  const isActive = (to) => {
+  const isActive = (to, label) => {
+    if (label === "Deckbuilder") return isDeckView;
+    if (label === "Browse Cards") return location.pathname === "/" && !isDeckView;
     if (!to) return false;
     return location.pathname === to;
   };
 
   const handleNavClick = (to, label) => {
-    if (label === "Deckbuilder") {
-      onOpenDeckbuilder?.();
-      return;
+    const actions = [resolveHeaderNavClick({ label, to, onBrowseCards, onOpenDeckbuilder })].flat();
+    for (const action of actions) {
+      if (action.type === "callback") action.fn();
+      else if (action.type === "navigate") navigate(action.to, action.state ? { state: action.state } : undefined);
     }
-    if (to === "/" && onBrowseCards) {
-      onBrowseCards();
-    }
-    navigate(to);
   };
 
   return (
@@ -59,7 +59,7 @@ const Header = ({ onBrowseCards, onOpenDeckbuilder } = {}) => {
                 key={label}
                 onClick={() => handleNavClick(to, label)}
                 className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-                  isActive(to)
+                  isActive(to, label)
                     ? "bg-indigo-100 text-indigo-700"
                     : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                 }`}

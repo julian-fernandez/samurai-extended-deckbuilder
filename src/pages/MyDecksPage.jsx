@@ -51,6 +51,7 @@ export default function MyDecksPage() {
     if (user) listDecks();
   }, [user, listDecks]);
 
+
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this deck? This cannot be undone.")) return;
     setDeletingId(id);
