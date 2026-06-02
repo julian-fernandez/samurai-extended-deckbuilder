@@ -6,7 +6,6 @@ import { CardSearch, DeckBuilder } from "./components/features";
 import { useCardSearchPage } from "./hooks/useCardSearchPage";
 import { clearImageCache } from "./services/imageCacheService";
 import { deserializeDeck } from "./hooks/useSavedDecks";
-import MobileNav from "./components/MobileNav.jsx";
 import SharedDeck from "./pages/SharedDeck.jsx";
 import DeckPage from "./pages/DeckPage.jsx";
 import CardPage from "./pages/CardPage.jsx";
@@ -52,8 +51,6 @@ function AppMain() {
     setViewMode,
     reloadTick,
     setReloadTick,
-    sidebarOpen,
-    setSidebarOpen,
     sidebarProps,
     hasActiveSearch,
   } = useCardSearchPage({ initialShowDeck: false });
@@ -67,7 +64,6 @@ function AppMain() {
     const params = new URLSearchParams(location.search);
     if (params.get("deck") === "open") {
       setShowDeck(true);
-      // Remove the param so back-navigation doesn't re-trigger.
       navigate(location.pathname, { replace: true });
     }
   }, [location.search]);
@@ -81,16 +77,6 @@ function AppMain() {
     setShowDeck(true);
     navigate(location.pathname, { replace: true, state: {} });
   }, [loading, cards.length, location]);
-
-  const mobileTab = showDeck ? "deck" : "search";
-  const handleMobileTab = (tab) => {
-    if (tab === "filters") {
-      setSidebarOpen(true);
-    } else {
-      setSidebarOpen(false);
-      setShowDeck(tab === "deck");
-    }
-  };
 
   if (loading) {
     return (
@@ -119,12 +105,10 @@ function AppMain() {
       sidebarProps={sidebarProps}
       showScrollToTop={showScrollToTop}
       onScrollToTop={scrollToTop}
+      isDeckView={showDeck}
+      deckCount={deckStats.total}
+      onSetDeckView={setShowDeck}
     >
-      <MobileNav
-        activeTab={sidebarOpen ? "filters" : mobileTab}
-        onTabChange={handleMobileTab}
-        deckCount={deckStats.total}
-      />
       <Header />
 
       {!showDeck ? (

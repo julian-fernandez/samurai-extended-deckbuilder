@@ -5,6 +5,7 @@ import { useAuth } from "../../hooks/useAuth";
 import AuthModal from "../auth/AuthModal";
 
 const NAV_LINKS = [
+  { label: "Browse Cards", to: "/" },
   { label: "Browse Decks", to: "/browse" },
   { label: "Deckbuilder", to: "/?deck=open" },
   { label: "My Decks", to: "/my-decks" },

@@ -24,7 +24,6 @@ const CardSearch = memo(({
   if (!hasActiveSearch) {
     return (
       <div className="flex flex-col items-center justify-center py-32 text-center">
-        <div className="text-6xl mb-6 select-none">⚔️</div>
         <h2 className="text-2xl font-semibold text-gray-700 mb-2">
           Search the card database
         </h2>
