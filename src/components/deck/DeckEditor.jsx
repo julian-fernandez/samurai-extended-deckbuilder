@@ -7,7 +7,6 @@ import { useSavedDecks, deserializeDeck } from "../../hooks/useSavedDecks";
 import { useAuth } from "../../hooks/useAuth";
 import AuthModal from "../auth/AuthModal";
 import SaveDeckModal from "./SaveDeckModal";
-import { clearAllCaches } from "../../services/imageCacheService";
 import { DECK_RULES } from "../../constants/index.js";
 import CardPreview from "./CardPreview";
 
@@ -186,12 +185,13 @@ export default function DeckEditor({
 
   return (
     <>
-      <div className="flex flex-col md:flex-row gap-4 md:gap-6 min-h-[60vh]">
+      {/* h-[calc(100vh-7.5rem)]: viewport minus sticky nav (h-14 = 3.5rem) minus content padding (py-8 = 4rem) */}
+      <div className="flex flex-col md:flex-row gap-4 md:gap-6 h-[calc(100vh-7.5rem)]">
         {/* ── Left: deck list column ── */}
-        <div className="flex-1 min-w-0 flex flex-col gap-3">
+        <div className="flex-1 min-w-0 flex flex-col gap-3 min-h-0">
 
           {/* ── Toolbar ── */}
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm px-4 py-3 flex flex-wrap items-center gap-3">
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm px-4 py-3 flex flex-wrap items-center gap-3 flex-shrink-0">
             {/* Stat badges */}
             <div className="flex items-center gap-2 flex-wrap">
               <StatBadge label="Dynasty" count={deckStats.dynasty} min={DECK_RULES.MIN_DYNASTY} />
@@ -291,7 +291,7 @@ export default function DeckEditor({
 
           {/* ── Banned cards block ── */}
           {bannedInDeck.length > 0 && (
-            <div className="bg-red-600 text-white rounded-xl px-4 py-3">
+            <div className="bg-red-600 text-white rounded-xl px-4 py-3 flex-shrink-0">
               <p className="text-xs font-bold mb-1 uppercase tracking-wide">
                 ⊘ Banned in Samurai Extended — {bannedInDeck.length} card{bannedInDeck.length !== 1 ? "s" : ""}
               </p>
@@ -305,7 +305,7 @@ export default function DeckEditor({
 
           {/* ── Other validation errors ── */}
           {errors.filter(e => !e.includes("is banned in")).length > 0 && (
-            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex-shrink-0">
               <p className="text-xs font-semibold text-red-700 mb-1">Deck errors</p>
               <ul className="space-y-0.5">
                 {errors.filter(e => !e.includes("is banned in")).map((e, i) => (
@@ -315,7 +315,7 @@ export default function DeckEditor({
             </div>
           )}
           {warnings.length > 0 && (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex-shrink-0">
               <p className="text-xs font-semibold text-amber-700 mb-1">Warnings</p>
               <ul className="space-y-0.5">
                 {warnings.map((w, i) => <li key={i} className="text-xs text-amber-600">• {w}</li>)}
@@ -324,7 +324,7 @@ export default function DeckEditor({
           )}
 
           {/* ── Card list / Stats ── */}
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm px-3 py-3 flex-1">
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm px-3 py-3 flex-1 overflow-y-auto min-h-0">
             {showStats ? (
               <DeckStats deck={deck} />
             ) : (
@@ -338,30 +338,11 @@ export default function DeckEditor({
               />
             )}
           </div>
-
-          {/* ── Utility footer ── */}
-          <div className="flex gap-2 text-xs text-slate-400">
-            <button
-              onClick={handleExportDeck}
-              className="hover:text-slate-600 transition-colors"
-              title="Copy deck list to clipboard"
-            >
-              Copy text list
-            </button>
-            <span>·</span>
-            <button
-              onClick={() => { try { clearAllCaches(); } catch {} window.location.reload(); }}
-              className="hover:text-slate-600 transition-colors"
-              title="Clear image caches and force reload"
-            >
-              Clear image cache
-            </button>
-          </div>
         </div>
 
-        {/* ── Right: sticky card preview (desktop only) ── */}
-        <div className="hidden md:block w-64 flex-shrink-0">
-          <div className="sticky top-4 bg-white border border-slate-200 rounded-2xl shadow-sm px-4 py-4">
+        {/* ── Right: card preview (desktop only) ── */}
+        <div className="hidden md:flex w-64 flex-shrink-0 flex-col min-h-0">
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm px-4 py-4 flex-1 overflow-y-auto min-h-0">
             <CardPreview
               card={hoveredCard}
               deck={deck}

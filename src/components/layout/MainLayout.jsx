@@ -30,9 +30,9 @@ const MainLayout = ({
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       <OfflineIndicator />
 
-      {/* Nav bar — full-width dark background, 1200 px content, fixed height h-14 */}
+      {/* Nav bar — sticky, full-width dark background, 1200 px content, fixed height h-14 */}
       {showGlobalHeader && (
-        <div className="bg-slate-900 flex-shrink-0 h-14 flex items-center">
+        <div className="bg-slate-900 sticky top-0 z-40 flex-shrink-0 h-14 flex items-center">
           <div className="max-w-[1200px] mx-auto px-4 w-full">
             <Header />
           </div>

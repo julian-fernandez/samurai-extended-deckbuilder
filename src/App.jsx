@@ -77,6 +77,12 @@ function AppMain() {
   const handleCardClick = (card) => navigate(`/card/${card.id}`);
   const [deckImageViewMode, setDeckImageViewMode] = useState("image");
 
+  // Tracks the saved deck currently loaded in the deckbuilder.
+  // Set when navigating here via "Edit in Deckbuilder" from /deck/:id.
+  // Cleared when the deck is cleared, so Save creates a new deck.
+  const [currentDeckId, setCurrentDeckId] = useState(null);
+  const [currentDeckMeta, setCurrentDeckMeta] = useState(null);
+
   // Auto-navigate to Browse Cards whenever search/filters change from any other page.
   // First call initialises the ref so we don't navigate on mount.
   const prevFiltersRef = useRef(null);
@@ -97,17 +103,19 @@ function AppMain() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, filters]);
 
-  // Handle importDeck router state (e.g. loading a shared deck into the builder).
+  // Handle importDeck router state (e.g. loading a deck into the builder from /deck/:id).
   const processedNavKeyRef = useRef(null);
   useEffect(() => {
     if (location.key === processedNavKeyRef.current) return;
     processedNavKeyRef.current = location.key;
 
-    const { importDeck } = location.state ?? {};
+    const { importDeck, importDeckId, importDeckMeta } = location.state ?? {};
     if (!importDeck) return;
 
     if (!loading && cards.length > 0) {
       setDeck(deserializeDeck(importDeck, cards));
+      setCurrentDeckId(importDeckId ?? null);
+      setCurrentDeckMeta(importDeckMeta ?? null);
       navigate("/?deck", { replace: true, state: {} });
     }
   }, [location.key, location.state, loading, cards.length]);
@@ -115,9 +123,11 @@ function AppMain() {
   // Finish importing once cards are available (cold-load case).
   useEffect(() => {
     if (loading || cards.length === 0) return;
-    const { importDeck } = location.state ?? {};
+    const { importDeck, importDeckId, importDeckMeta } = location.state ?? {};
     if (!importDeck) return;
     setDeck(deserializeDeck(importDeck, cards));
+    setCurrentDeckId(importDeckId ?? null);
+    setCurrentDeckMeta(importDeckMeta ?? null);
     navigate("/?deck", { replace: true, state: {} });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, cards.length]);
@@ -165,7 +175,7 @@ function AppMain() {
       handleExportDeck={handleExportDeck}
       showImport={showImport}
       setShowImport={setShowImport}
-      handleClearDeck={handleClearDeck}
+      handleClearDeck={() => { handleClearDeck(); setCurrentDeckId(null); setCurrentDeckMeta(null); }}
       deckStats={deckStats}
       deck={deck}
       setDeck={setDeck}
@@ -182,7 +192,10 @@ function AppMain() {
       handleRemoveFromDeck={handleRemoveFromDeck}
       onCardHover={handleCardHover}
       hoveredCard={hoveredCard}
-      onAfterSave={(id) => navigate(`/deck/${id}`)}
+      onAfterSave={(id) => { setCurrentDeckId(id); navigate(`/deck/${id}`); }}
+      deckId={currentDeckId}
+      deckMeta={currentDeckMeta}
+      setDeckMeta={setCurrentDeckMeta}
     />
   );
 

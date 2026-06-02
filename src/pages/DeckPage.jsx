@@ -138,7 +138,8 @@ export default function DeckPage() {
                       navigate("/", {
                         state: {
                           importDeck: deck.map((c) => ({ cardId: c.id, quantity: c.quantity ?? 1 })),
-                          importDeckName: deckMeta?.name,
+                          importDeckId: id,
+                          importDeckMeta: deckMeta,
                         },
                       })
                     }

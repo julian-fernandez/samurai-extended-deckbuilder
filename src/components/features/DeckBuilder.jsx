@@ -13,6 +13,7 @@ const DeckBuilder = ({
   handleAddToDeck, handleRemoveFromDeck,
   onCardHover, hoveredCard,
   onAfterSave,
+  deckId, deckMeta, setDeckMeta,
   // Legacy props (no longer used but kept for compat)
   deckImageViewMode, setDeckImageViewMode, reloadTick, setReloadTick, clearImageCache,
 }) => {
@@ -39,6 +40,9 @@ const DeckBuilder = ({
       onCardHover={onCardHover}
       hoveredCard={hoveredCard}
       onAfterSave={onAfterSave}
+      deckId={deckId}
+      deckMeta={deckMeta}
+      setDeckMeta={setDeckMeta}
     />
   );
 };
