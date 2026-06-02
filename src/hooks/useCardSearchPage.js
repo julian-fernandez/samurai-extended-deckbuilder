@@ -27,7 +27,6 @@ export function useCardSearchPage({ initialShowDeck = false } = {}) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const prevFiltersRef = useRef({ searchTerm: "", filters: {} });
-  const userSwitchedToDeckRef = useRef(false);
 
   // Debounce search term to avoid filtering 6000+ cards on every keystroke;
   // clear instantly so removing a search term feels responsive.
@@ -38,34 +37,24 @@ export function useCardSearchPage({ initialShowDeck = false } = {}) {
     return () => clearTimeout(timer);
   }, [cards, searchTerm, filters, filterCardsData]);
 
-  // Switch back to search view when the user changes filters while deck is shown,
-  // unless they explicitly switched to the deck view themselves.
+  // Any change to search / filters while the deck panel is open switches back
+  // to the card search view so the results are immediately visible.
   useEffect(() => {
-    if (showDeck && !userSwitchedToDeckRef.current) {
-      const filtersChanged =
-        searchTerm !== prevFiltersRef.current.searchTerm ||
-        JSON.stringify(filters) !== JSON.stringify(prevFiltersRef.current.filters);
-      const hasActiveFilter =
-        searchTerm ||
-        Object.values(filters).some((v) => (Array.isArray(v) ? v.length > 0 : v !== ""));
+    if (!showDeck) {
+      prevFiltersRef.current = { searchTerm, filters };
+      return;
+    }
+    const filtersChanged =
+      searchTerm !== prevFiltersRef.current.searchTerm ||
+      JSON.stringify(filters) !== JSON.stringify(prevFiltersRef.current.filters);
 
-      if (filtersChanged && hasActiveFilter) {
-        setShowDeck(false);
-      }
+    if (filtersChanged) {
+      setShowDeck(false);
     }
     prevFiltersRef.current = { searchTerm, filters };
   }, [searchTerm, filters, showDeck]);
 
-  // Reset the manual-switch flag whenever filters change so the auto-switch
-  // logic can take over again on the next filter interaction.
-  useEffect(() => {
-    if (userSwitchedToDeckRef.current) {
-      userSwitchedToDeckRef.current = false;
-    }
-  }, [searchTerm, filters]);
-
   const handleToggleDeckView = () => {
-    userSwitchedToDeckRef.current = !showDeck;
     setShowDeck((prev) => !prev);
   };
 

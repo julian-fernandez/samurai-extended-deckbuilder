@@ -11,15 +11,22 @@ const NAV_LINKS = [
   { label: "My Decks", to: "/my-decks" },
 ];
 
-const Header = () => {
+const Header = ({ onBrowseCards } = {}) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   const isActive = (to) => {
-    if (to === "/?deck=open") return false; // never highlight as "active"
+    if (to === "/?deck=open") return false;
     return location.pathname === to;
+  };
+
+  const handleNavClick = (to) => {
+    if (to === "/" && onBrowseCards) {
+      onBrowseCards();
+    }
+    navigate(to);
   };
 
   return (
@@ -45,7 +52,7 @@ const Header = () => {
             {NAV_LINKS.map(({ label, to }) => (
               <button
                 key={label}
-                onClick={() => navigate(to)}
+                onClick={() => handleNavClick(to)}
                 className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
                   isActive(to)
                     ? "bg-indigo-100 text-indigo-700"

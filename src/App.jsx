@@ -109,7 +109,7 @@ function AppMain() {
       deckCount={deckStats.total}
       onSetDeckView={setShowDeck}
     >
-      <Header />
+      <Header onBrowseCards={() => setShowDeck(false)} />
 
       {!showDeck ? (
         <CardSearch
