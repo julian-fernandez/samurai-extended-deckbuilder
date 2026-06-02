@@ -5,6 +5,7 @@ import { loadCards } from "../services/cardService";
 import { getDeckByType, getDeckCount } from "../services/deckService";
 import ModernDeckView from "../components/ModernDeckView";
 import CardPreview from "../components/deck/CardPreview";
+import { MainLayout } from "../components/layout";
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function SharedDeck() {
@@ -43,30 +44,33 @@ export default function SharedDeck() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading deck…</p>
+      <MainLayout>
+        <div className="flex items-center justify-center py-32">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4" />
+            <p className="text-gray-600">Loading deck…</p>
+          </div>
         </div>
-      </div>
+      </MainLayout>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center bg-white rounded-2xl shadow-lg p-10 max-w-sm mx-4">
-          <p className="text-2xl mb-2">🔒</p>
-          <h1 className="text-lg font-bold text-gray-900 mb-2">Deck not found</h1>
-          <p className="text-gray-500 text-sm mb-6">{error}</p>
-          <Link
-            to="/"
-            className="inline-block px-6 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl text-sm font-semibold"
-          >
-            Go to card search
-          </Link>
+      <MainLayout>
+        <div className="flex items-center justify-center py-32">
+          <div className="text-center bg-white rounded-2xl shadow-lg p-10 max-w-sm mx-4">
+            <h1 className="text-lg font-bold text-gray-900 mb-2">Deck not found</h1>
+            <p className="text-gray-500 text-sm mb-6">{error}</p>
+            <Link
+              to="/"
+              className="inline-block px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700"
+            >
+              Go to card search
+            </Link>
+          </div>
         </div>
-      </div>
+      </MainLayout>
     );
   }
 
@@ -76,8 +80,8 @@ export default function SharedDeck() {
     : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <MainLayout>
+      <div className="max-w-5xl mx-auto">
 
         {/* ── Header ── */}
         <div className="mb-6">
@@ -145,6 +149,6 @@ export default function SharedDeck() {
           Shared via L5R Samurai Extended Card Search
         </p>
       </div>
-    </div>
+    </MainLayout>
   );
 }
