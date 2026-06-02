@@ -186,7 +186,7 @@ export default function DeckEditor({
 
   return (
     <>
-      <div className="flex flex-col md:flex-row gap-4 md:gap-6 min-h-[60vh]">
+      <div className="flex flex-col md:flex-row gap-4 md:gap-6 min-h-[60vh] max-w-4xl mx-auto w-full">
         {/* ── Left: deck list column ── */}
         <div className="flex-1 min-w-0 flex flex-col gap-3">
 
@@ -360,7 +360,7 @@ export default function DeckEditor({
         </div>
 
         {/* ── Right: sticky card preview (desktop only) ── */}
-        <div className="hidden md:block w-96 flex-shrink-0">
+        <div className="hidden md:block w-64 flex-shrink-0">
           <div className="sticky top-4 bg-white border border-slate-200 rounded-2xl shadow-sm px-4 py-4">
             <CardPreview
               card={hoveredCard}

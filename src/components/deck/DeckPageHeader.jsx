@@ -4,12 +4,6 @@ import { useSavedDecks } from "../../hooks/useSavedDecks";
 import { useAuth } from "../../hooks/useAuth";
 import AuthModal from "../auth/AuthModal";
 
-const NAV_LINKS = [
-  { label: "Browse Cards", to: "/" },
-  { label: "Browse Decks", to: "/browse" },
-  { label: "My Decks", to: "/my-decks" },
-];
-
 export default function DeckPageHeader({
   deckMeta, setDeckMeta, deckId,
   deckStats, showDeck, onToggleDeckView,
@@ -140,47 +134,7 @@ export default function DeckPageHeader({
         </div>
 
         {/* Right side controls */}
-        <div className="flex items-center gap-3 flex-shrink-0 flex-wrap">
-          {/* Nav links */}
-          <nav className="flex items-center gap-1">
-            {NAV_LINKS.map(({ label, to }) => (
-              <button
-                key={label}
-                onClick={() => navigate(to)}
-                className="px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
-              >
-                {label}
-              </button>
-            ))}
-            <button
-              onClick={() => navigate("/?deck")}
-              className="px-3 py-1.5 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
-            >
-              Deckbuilder
-            </button>
-          </nav>
-
-          {user ? (
-            <div className="flex items-center gap-2">
-              <span
-                className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold"
-                title={user.email}
-              >
-                {user.email?.[0]?.toUpperCase() ?? "?"}
-              </span>
-              <button onClick={signOut} className="text-xs text-slate-400 hover:text-slate-700 transition-colors">
-                Sign out
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setShowAuthModal(true)}
-              className="text-sm px-4 py-2 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors"
-            >
-              Sign in
-            </button>
-          )}
-
+        <div className="flex items-center gap-3 flex-shrink-0">
           <button
             onClick={onToggleDeckView}
             className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl text-sm font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg"
