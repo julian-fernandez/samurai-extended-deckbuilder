@@ -1,30 +1,50 @@
 import { L5R_KEYWORDS } from "../constants/index.js";
 
 /**
- * Return true only if a text segment looks like a keyword block, i.e. it
- * contains bullet separators (&#8226; / •) or begins with a <b>…</b> tag.
- * Plain rules sentences ("After your next Events Phase begins…") are rejected
- * so their words are never mistaken for keywords.
+ * Return true only if a text segment looks like a keyword block.
+ *
+ * Two valid forms:
+ *   1. Bold-wrapped:  <b>Samurai • Courtier</b>
+ *   2. Bare bullets:  Samurai • Courtier • Scout
+ *
+ * Action-cost lines like "Courtier • Open: Do something" are explicitly
+ * rejected: they contain a colon after the bullet tokens, which is never
+ * present in a keyword declaration block.
  */
 const isKeywordBlock = (raw) => {
   const norm = raw.replace(/&#8226;/g, "\u2022");
-  return norm.includes("\u2022") || /^<b>[^<]+<\/b>/.test(norm.trimStart());
+  // Bold keyword declaration is always a keyword block.
+  if (/^<b>[^<]+<\/b>/.test(norm.trimStart())) return true;
+  // Bare bullet list — only if there is no colon (colon signals an action cost).
+  const textOnly = norm.replace(/<[^>]*>/g, "").trim();
+  return textOnly.includes("\u2022") && !textOnly.includes(":");
 };
 
 /**
  * Parse a keyword block into individual keyword tokens present in L5R_KEYWORDS.
  *
- * Compound bullet segments like "Ratling Creature" (where the whole token is
- * not itself a keyword) are split word-by-word so "Ratling" and "Creature" are
- * each captured. This is safe here because the caller already verified the
- * segment is a keyword block, not a rules sentence.
+ * For bold-wrapped blocks (<b>Samurai • Courtier</b>) only the content inside
+ * the <b>…</b> tags is inspected — text that follows on the same line (action
+ * cost descriptions like "Bow a Personality") is ignored.
+ *
+ * For bare bullet blocks (no bold wrapper) the whole segment is parsed, but
+ * the word-split fallback only fires when every word in the token is itself a
+ * keyword, preventing plain sentences from being mis-tokenised.
  */
 const parseKeywordBlock = (raw) => {
   const found = [];
 
-  raw
+  // For bold-wrapped keyword lines, only parse inside <b>…</b> tags.
+  const isBoldWrapped = /^<b>[^<]+<\/b>/.test(raw.trimStart());
+  let segment;
+  if (isBoldWrapped) {
+    segment = [...raw.matchAll(/<b>([^<]+)<\/b>/g)].map((m) => m[1]).join(" \u2022 ");
+  } else {
+    segment = raw.replace(/&#8226;/g, "\u2022").replace(/<[^>]*>/g, "");
+  }
+
+  segment
     .replace(/&#8226;/g, "\u2022")
-    .replace(/<[^>]*>/g, "")
     .split(/[•·\u2022]/)
     .map((k) => k.trim())
     .filter((k) => k && !k.endsWith(":"))
@@ -32,17 +52,29 @@ const parseKeywordBlock = (raw) => {
       if (L5R_KEYWORDS.includes(token)) {
         if (!found.includes(token)) found.push(token);
       } else {
-        token
-          .split(/\s+/)
-          .filter((word) => L5R_KEYWORDS.includes(word))
-          .forEach((word) => {
-            if (!found.includes(word)) found.push(word);
+        // Fallback word-split for compound tokens like "Ratling Creature".
+        // Only fires when every word is a known keyword to prevent sentences
+        // like "Bow a Personality" from contributing false keywords.
+        const words = token.split(/\s+/);
+        if (words.length > 1 && words.every((w) => L5R_KEYWORDS.includes(w))) {
+          words.forEach((w) => {
+            if (!found.includes(w)) found.push(w);
           });
+        }
       }
     });
 
   return found;
 };
+
+/**
+ * Card types whose raw `keywords` array stores action requirements
+ * ("Bow a Personality", "Target a Samurai") rather than card properties.
+ * For these types we skip the raw array and rely solely on text extraction.
+ */
+const SKIP_RAW_KEYWORDS_TYPES = new Set([
+  "strategy", "spell", "ring", "event", "celestial", "region",
+]);
 
 /**
  * Extract keywords from card data.
@@ -51,9 +83,12 @@ const parseKeywordBlock = (raw) => {
  */
 export const extractKeywords = (card) => {
   const keywords = [];
+  const cardType = (card.type?.[0] ?? "").toLowerCase();
 
-  // Start with the dedicated keywords array (may be incomplete in the data).
-  if (card.keywords && Array.isArray(card.keywords)) {
+  // For action cards the raw `keywords` array contains action requirements
+  // (e.g. "Bow", "Personality", "Ashigaru") rather than actual card keywords.
+  // Skip it for those types; text extraction below is more reliable.
+  if (!SKIP_RAW_KEYWORDS_TYPES.has(cardType) && Array.isArray(card.keywords)) {
     card.keywords.forEach((keyword) => {
       const cleanKeyword = keyword.replace(/<[^>]*>/g, "").trim();
       if (cleanKeyword && !keywords.includes(cleanKeyword)) {
